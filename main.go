@@ -84,5 +84,5 @@ func main() {
 	router.GET("/hex/:h", getHexString)
 	router.GET("/fibonacci/hex/:f/:h", getFibonacciHex)
 
-	router.Run("localhost:8080")
+	router.Run(":8080")
 }

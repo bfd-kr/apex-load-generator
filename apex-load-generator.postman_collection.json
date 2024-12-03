@@ -1,0 +1,98 @@
+{
+	"info": {
+		"_postman_id": "d5faf5a0-850d-4775-a829-d339165737e5",
+		"name": "apex-load-generator",
+		"description": "Calls to a docker image that will create load on the images host given variable inputs.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "10555605"
+	},
+	"item": [
+		{
+			"name": "Fibonacci",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/fibonacci/:f",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"fibonacci",
+						":f"
+					],
+					"variable": [
+						{
+							"key": "f",
+							"value": "30"
+						}
+					]
+				},
+				"description": "Calculate the value of the Fibonacci sequence for the specified input value."
+			},
+			"response": []
+		},
+		{
+			"name": "Fibonacci Hex",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/fibonacci/hex/:f/:k",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"fibonacci",
+						"hex",
+						":f",
+						":k"
+					],
+					"variable": [
+						{
+							"key": "f",
+							"value": "30"
+						},
+						{
+							"key": "k",
+							"value": "200"
+						}
+					]
+				},
+				"description": "Calculate Fibonacci and Hex to the values specified."
+			},
+			"response": []
+		},
+		{
+			"name": "Hex",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/hex/:h",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"hex",
+						":h"
+					],
+					"variable": [
+						{
+							"key": "h",
+							"value": "200"
+						}
+					]
+				},
+				"description": "Create random hex data of the length specified."
+			},
+			"response": []
+		}
+	]
+}
