@@ -1,4 +1,4 @@
-module example.com/web-service-gin
+module apex-load-generator
 
 go 1.23.3
 

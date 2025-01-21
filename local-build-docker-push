@@ -1,5 +1,7 @@
 #!/bin/zsh
 
+set -e
+
 GOOS=linux GOARCH=amd64 go build -o out/apex-load-generator .
 nerdctl build --platform linux/amd64 -t apex-load-generator .
 nerdctl tag docker.io/library/apex-load-generator:latest krogertechnology-docker-prod.jfrog.io/apex-public/apex-load-generator:latest

@@ -7,3 +7,4 @@
 *.out
 go.work
 out/
+apex-load-generator
