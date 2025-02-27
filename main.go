@@ -1,10 +1,11 @@
 package main
 
 import (
-	"crypto/rand"
 	"encoding/hex"
+	"math/rand"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,9 +13,7 @@ import (
 // creates a byte slice of size mb and fills it with random data.
 func allocateMemory(k int) {
 	bytes := make([]byte, k*1024)
-
 	rand.Read(bytes)
-
 	bytes = nil
 }
 
@@ -53,10 +52,7 @@ func getFibonacci(c *gin.Context) {
 // createHexString generates a hex string of n kilobytes.
 func createHexString(n int) (string, error) {
 	bytes := make([]byte, n*1024)
-	_, err := rand.Read(bytes)
-	if err != nil {
-		return "", err
-	}
+	rand.Read(bytes)
 	hexString := hex.EncodeToString(bytes)
 	return hexString[:len(hexString)/2], nil
 }
@@ -139,6 +135,7 @@ func fibonacciHexMemory(c *gin.Context) {
 }
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
 	router := gin.Default()
 	router.GET("/fibonacci/:f", getFibonacci)
 	router.GET("/hex/:h", getHexString)
