@@ -1,11 +1,9 @@
 package main
 
 import (
-	"encoding/hex"
 	"fmt"
 	"math/rand"
 	"net/http"
-	"runtime"
 	"strconv"
 	"time"
 
