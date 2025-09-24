@@ -12,8 +12,11 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
 - **Web framework**: Uses Gin for HTTP routing and JSON responses
 - **Load generation functions**:
   - `fibonacci()`: Recursive Fibonacci calculation for CPU load
-  - `createHexString()`: Random hex string generation for CPU/memory load
+  - `createHexString()`: Random hex string generation for CPU/memory load (optimized for low CPU usage)
   - `allocateMemory()`: Memory allocation for memory pressure testing
+    - **Purpose**: Temporarily allocate memory to create memory pressure, then allow natural garbage collection
+    - **Behavior**: Allocates k kilobytes, touches memory at 4KB page boundaries to ensure real allocation, then lets Go's GC handle cleanup naturally
+    - **Important**: Do not force garbage collection with `runtime.GC()` - let it happen naturally for realistic load testing
 
 ## API Endpoints
 
