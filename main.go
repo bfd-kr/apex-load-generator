@@ -34,6 +34,7 @@ func getMemory(c *gin.Context) {
 }
 
 // fibonacci calculates the nth Fibonacci number.
+// Deprecated: Use generatePrimes() for more predictable CPU load testing.
 func fibonacci(n int) int {
 	if n <= 1 {
 		return n
@@ -70,6 +71,7 @@ func generatePrimes(n int) []int {
 }
 
 // getFibonacci handles GET requests to calculate the nth Fibonacci number.
+// Deprecated: Use getPrimes() for more predictable CPU load testing.
 func getFibonacci(c *gin.Context) {
 	f := c.Param("f")
 	num, err := strconv.Atoi(f)

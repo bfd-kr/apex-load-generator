@@ -11,11 +11,12 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
 - **Single-file application**: All code is in `main.go`
 - **Web framework**: Uses Gin for HTTP routing and JSON responses
 - **Load generation functions**:
-  - `fibonacci()`: Recursive Fibonacci calculation for CPU load (exponential complexity - unpredictable scaling)
+  - `fibonacci()`: **DEPRECATED** - Recursive Fibonacci calculation for CPU load (exponential complexity - unpredictable scaling)
+    - **Status**: Deprecated in favor of `generatePrimes()`
     - **Purpose**: Legacy CPU load testing with exponential time complexity
     - **Behavior**: Classic recursive implementation with O(2^n) complexity
     - **Important**: Provides unpredictable scaling - small input changes cause massive CPU usage differences
-    - **Recommendation**: Use `generatePrimes()` for more predictable CPU testing
+    - **Migration**: Replace with `generatePrimes()` for predictable CPU testing
   - `generatePrimes()`: Prime number generation for CPU load (linear complexity - predictable scaling)
     - **Purpose**: CPU load testing with predictable, configurable intensity
     - **Behavior**: Generates first n prime numbers using trial division with optimizations (only test odd candidates, early termination)
@@ -33,7 +34,7 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
 
 ## API Endpoints
 
-- `GET /fibonacci/:f` - Calculate nth Fibonacci number
+- `GET /fibonacci/:f` - **DEPRECATED** - Calculate nth Fibonacci number (use /primes instead)
 - `GET /primes/:p` - Generate first p prime numbers
 - `GET /hex/:h` - Generate hex string of h kilobytes
 - `GET /memory/:m` - Allocate m kilobytes of memory
