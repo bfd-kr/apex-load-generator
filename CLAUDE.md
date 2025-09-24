@@ -21,6 +21,8 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
     - **Purpose**: CPU load testing with predictable, configurable intensity
     - **Behavior**: Generates first n prime numbers using trial division with optimizations (only test odd candidates, early termination)
     - **Complexity**: O(n^1.5) - much more predictable than exponential Fibonacci
+    - **Returns**: PrimeResult struct with timing information, count, last prime found, and full prime list
+    - **Timing**: Uses high-resolution timer (time.Now()) not subject to process suspension
     - **Important**: Preferred over Fibonacci for consistent CPU load testing
   - `createHexString()`: Random hex string generation for CPU/memory load (optimized for low CPU usage)
     - **Purpose**: Generate hex strings of specified size for load testing with minimal CPU overhead
@@ -36,13 +38,13 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
 ## API Endpoints
 
 - `GET /fibonacci/:f` - **DEPRECATED** - Calculate nth Fibonacci number (use /primes instead)
-- `GET /primes/:p` - Generate first p prime numbers
+- `GET /primes/:p` - Generate first p prime numbers (returns timing and performance data)
 - `GET /hex/:h` - Generate hex string of h kilobytes
 - `GET /memory/:m` - Allocate m kilobytes of memory
 - `GET /fibonacci/hex/:f/:h` - **DEPRECATED** - Combined Fibonacci and hex generation (use /primes/hex instead)
-- `GET /primes/hex/:p/:h` - Combined prime generation and hex string creation
+- `GET /primes/hex/:p/:h` - Combined prime generation and hex string creation (includes timing data)
 - `GET /fibonacci/hex/memory/:f/:h/:m` - **DEPRECATED** - Combined all three operations with Fibonacci (use /primes/hex/memory instead)
-- `GET /primes/hex/memory/:p/:h/:m` - Combined prime generation, hex string creation, and memory allocation
+- `GET /primes/hex/memory/:p/:h/:m` - Combined prime generation, hex string creation, and memory allocation (includes timing data)
   - **Input Limits**: p: 0-10,000, h: 0-1,000 KB, m: 0-1,000,000 KB (prevents resource exhaustion)
 
 ## Input Validation

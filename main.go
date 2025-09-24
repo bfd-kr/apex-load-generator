@@ -57,14 +57,35 @@ func fibonacci(n int) int {
 	return fibonacci(n-1) + fibonacci(n-2)
 }
 
-// generatePrimes generates the first n prime numbers.
-func generatePrimes(n int) []int {
+// PrimeResult holds the result of prime generation including timing
+type PrimeResult struct {
+	Primes     []int `json:"primes"`
+	Count      int   `json:"count"`
+	LastPrime  int   `json:"last_prime"`
+	DurationMs int64 `json:"duration_ms"`
+}
+
+// generatePrimes generates the first n prime numbers and returns timing information.
+func generatePrimes(n int) PrimeResult {
+	start := time.Now()
+
 	if n <= 0 {
-		return []int{}
+		return PrimeResult{
+			Primes:     []int{},
+			Count:      0,
+			LastPrime:  0,
+			DurationMs: time.Since(start).Nanoseconds() / 1000000,
+		}
 	}
+
 	primes := []int{2}
 	if n == 1 {
-		return primes
+		return PrimeResult{
+			Primes:     primes,
+			Count:      1,
+			LastPrime:  2,
+			DurationMs: time.Since(start).Nanoseconds() / 1000000,
+		}
 	}
 
 	for candidate := 3; len(primes) < n; candidate += 2 {
@@ -82,7 +103,18 @@ func generatePrimes(n int) []int {
 			primes = append(primes, candidate)
 		}
 	}
-	return primes
+
+	lastPrime := 0
+	if len(primes) > 0 {
+		lastPrime = primes[len(primes)-1]
+	}
+
+	return PrimeResult{
+		Primes:     primes,
+		Count:      len(primes),
+		LastPrime:  lastPrime,
+		DurationMs: time.Since(start).Nanoseconds() / 1000000,
+	}
 }
 
 // getFibonacci handles GET requests to calculate the nth Fibonacci number.
@@ -115,7 +147,7 @@ func getPrimes(c *gin.Context) {
 		return
 	}
 	result := generatePrimes(num)
-	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"p": p, "primes": result}})
+	c.IndentedJSON(http.StatusOK, gin.H{"data": result})
 }
 
 // createHexString generates a hex string of n kilobytes.
@@ -206,7 +238,7 @@ func getPrimesHex(c *gin.Context) {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
 		return
 	}
-	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"p": p, "primes": pResult, "h": h, "hexString": hResult}})
+	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"prime_result": pResult, "h": h, "hexString": hResult}})
 }
 
 // create function fibonacci, hex, memory
@@ -320,7 +352,7 @@ func primesHexMemory(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"p": p, "primes": pResult, "h": h, "hexString": hResult, "m": "done"}})
+	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"prime_result": pResult, "h": h, "hexString": hResult, "m": "done"}})
 }
 
 func main() {
