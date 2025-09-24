@@ -13,7 +13,7 @@ import (
 // MemoryResult holds the result of memory allocation including timing
 type MemoryResult struct {
 	SizeKB     int   `json:"size_kb"`
-	DurationMs int64 `json:"duration_ms"`
+	DurationUs int64 `json:"duration_us"`
 }
 
 // allocateMemory creates a byte slice of size mb and ensures allocation.
@@ -36,7 +36,7 @@ func allocateMemory(k int) (MemoryResult, error) {
 
 	return MemoryResult{
 		SizeKB:     k,
-		DurationMs: time.Since(start).Nanoseconds() / 1000000,
+		DurationUs: time.Since(start).Nanoseconds() / 1000,
 	}, err
 }
 
@@ -64,7 +64,7 @@ func getMemory(c *gin.Context) {
 type FibonacciResult struct {
 	N          int   `json:"n"`
 	Result     int   `json:"result"`
-	DurationMs int64 `json:"duration_ms"`
+	DurationUs int64 `json:"duration_us"`
 }
 
 // fibonacci calculates the nth Fibonacci number.
@@ -82,7 +82,7 @@ func fibonacci(n int) FibonacciResult {
 	return FibonacciResult{
 		N:          n,
 		Result:     result,
-		DurationMs: time.Since(start).Nanoseconds() / 1000000,
+		DurationUs: time.Since(start).Nanoseconds() / 1000,
 	}
 }
 
@@ -98,7 +98,7 @@ func fibonacciRecursive(n int) int {
 type PrimeResult struct {
 	Count      int   `json:"count"`
 	LastPrime  int   `json:"last_prime"`
-	DurationMs int64 `json:"duration_ms"`
+	DurationUs int64 `json:"duration_us"`
 }
 
 // generatePrimes generates the first n prime numbers and returns timing information.
@@ -109,7 +109,7 @@ func generatePrimes(n int) PrimeResult {
 		return PrimeResult{
 			Count:      0,
 			LastPrime:  0,
-			DurationMs: time.Since(start).Nanoseconds() / 1000000,
+			DurationUs: time.Since(start).Nanoseconds() / 1000,
 		}
 	}
 
@@ -117,7 +117,7 @@ func generatePrimes(n int) PrimeResult {
 		return PrimeResult{
 			Count:      1,
 			LastPrime:  2,
-			DurationMs: time.Since(start).Nanoseconds() / 1000000,
+			DurationUs: time.Since(start).Nanoseconds() / 1000,
 		}
 	}
 
@@ -147,7 +147,7 @@ func generatePrimes(n int) PrimeResult {
 	return PrimeResult{
 		Count:      count,
 		LastPrime:  lastPrime,
-		DurationMs: time.Since(start).Nanoseconds() / 1000000,
+		DurationUs: time.Since(start).Nanoseconds() / 1000,
 	}
 }
 
@@ -189,7 +189,7 @@ type HexResult struct {
 	SizeKB     int    `json:"size_kb"`
 	Length     int    `json:"length"`
 	HexString  string `json:"hex_string"`
-	DurationMs int64  `json:"duration_ms"`
+	DurationUs int64  `json:"duration_us"`
 }
 
 // createHexString generates a hex string of n kilobytes.
@@ -207,7 +207,7 @@ func createHexString(n int) (HexResult, error) {
 		SizeKB:     n,
 		Length:     len(hexString),
 		HexString:  hexString,
-		DurationMs: time.Since(start).Nanoseconds() / 1000000,
+		DurationUs: time.Since(start).Nanoseconds() / 1000,
 	}, nil
 }
 
