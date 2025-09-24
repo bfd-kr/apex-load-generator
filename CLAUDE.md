@@ -12,7 +12,15 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
 - **Web framework**: Uses Gin for HTTP routing and JSON responses
 - **Load generation functions**:
   - `fibonacci()`: Recursive Fibonacci calculation for CPU load (exponential complexity - unpredictable scaling)
+    - **Purpose**: Legacy CPU load testing with exponential time complexity
+    - **Behavior**: Classic recursive implementation with O(2^n) complexity
+    - **Important**: Provides unpredictable scaling - small input changes cause massive CPU usage differences
+    - **Recommendation**: Use `generatePrimes()` for more predictable CPU testing
   - `generatePrimes()`: Prime number generation for CPU load (linear complexity - predictable scaling)
+    - **Purpose**: CPU load testing with predictable, configurable intensity
+    - **Behavior**: Generates first n prime numbers using trial division with optimizations (only test odd candidates, early termination)
+    - **Complexity**: O(n^1.5) - much more predictable than exponential Fibonacci
+    - **Important**: Preferred over Fibonacci for consistent CPU load testing
   - `createHexString()`: Random hex string generation for CPU/memory load (optimized for low CPU usage)
     - **Purpose**: Generate hex strings of specified size for load testing with minimal CPU overhead
     - **Behavior**: Directly generates hex characters (0-9, a-f) using `math/rand` instead of byte-to-hex conversion
