@@ -103,6 +103,53 @@ go run main.go
 - `apex-load-generator.postman_collection.json` - Postman collection for API testing
 - `out/` - Build output directory
 
+## Request-Level Metrics
+
+**New Feature**: All API endpoints now include request-level performance metrics in their responses. This enables comprehensive analysis of request performance including CPU usage, memory consumption, and timing data.
+
+### RequestMetrics Structure
+
+Each request now includes a `request_metrics` field in the JSON response containing:
+
+- **`duration_us`**: Request duration in microseconds (from start to completion)
+- **`cpu_usage_percent`**: Approximated CPU usage percentage during request processing
+- **`memory_used_bytes`**: Memory delta in bytes during request execution (memory consumed - memory freed)
+- **`goroutines_before`**: Number of goroutines before request processing
+- **`goroutines_after`**: Number of goroutines after request processing
+
+### Response Format
+
+All endpoints now return JSON with two top-level fields:
+```json
+{
+  "data": {
+    // Original response data (FibonacciResult, PrimeResult, HexResult, MemoryResult, or combinations)
+  },
+  "request_metrics": {
+    "duration_us": 1234,
+    "cpu_usage_percent": 25.5,
+    "memory_used_bytes": 1048576,
+    "goroutines_before": 8,
+    "goroutines_after": 8
+  }
+}
+```
+
+### Implementation Details
+
+- **Timing**: Uses high-resolution `time.Now()` with microsecond precision
+- **Memory Tracking**: Captures `runtime.MemStats.Alloc` before and after request processing
+- **CPU Estimation**: Simple approximation based on request duration (not perfect but indicative)
+- **Goroutine Monitoring**: Tracks goroutine count changes during request processing
+- **Zero Overhead**: Metrics collection adds minimal performance overhead
+
+### Use Cases
+
+- **Performance Analysis**: Track request performance across different load levels
+- **Resource Monitoring**: Monitor memory usage patterns and goroutine behavior
+- **Load Testing**: Compare performance metrics under various load conditions
+- **Optimization**: Identify performance bottlenecks in load generation functions
+
 ## Dependencies
 
 Primary dependency is `github.com/gin-gonic/gin` for the web framework. Uses standard library packages for encoding, math, and HTTP.
