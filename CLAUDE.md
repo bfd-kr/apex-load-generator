@@ -29,6 +29,7 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
     - **Purpose**: Generate hex strings of specified size for load testing with minimal CPU overhead
     - **Behavior**: Directly generates hex characters (0-9, a-f) using `math/rand` instead of byte-to-hex conversion
     - **Returns**: HexResult struct with size, length, hex string, and timing information
+    - **Data Transfer Testing**: Returns full hex string content for network/bandwidth testing (hex data compresses poorly)
     - **Optimization**: Avoids expensive `hex.EncodeToString()` and crypto-grade random generation for better performance
     - **Important**: Uses `math/rand.Intn(16)` for efficiency - do not revert to `crypto/rand` or `hex.EncodeToString()`
   - `allocateMemory()`: Memory allocation for memory pressure testing
@@ -42,12 +43,12 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
 
 - `GET /fibonacci/:f` - **DEPRECATED** - Calculate nth Fibonacci number (returns timing and performance data)
 - `GET /primes/:p` - Generate first p prime numbers (returns timing and performance data)
-- `GET /hex/:h` - Generate hex string of h kilobytes (returns timing and performance data)
+- `GET /hex/:h` - Generate hex string of h kilobytes (returns full hex data for bandwidth testing)
 - `GET /memory/:m` - Allocate m kilobytes of memory (returns timing and performance data)
 - `GET /fibonacci/hex/:f/:h` - **DEPRECATED** - Combined Fibonacci and hex generation (use /primes/hex instead)
-- `GET /primes/hex/:p/:h` - Combined prime generation and hex string creation (includes timing data)
+- `GET /primes/hex/:p/:h` - Combined prime generation and hex string creation (includes full hex data)
 - `GET /fibonacci/hex/memory/:f/:h/:m` - **DEPRECATED** - Combined all three operations with Fibonacci (use /primes/hex/memory instead)
-- `GET /primes/hex/memory/:p/:h/:m` - Combined prime generation, hex string creation, and memory allocation (includes timing data)
+- `GET /primes/hex/memory/:p/:h/:m` - Combined prime generation, hex string creation, and memory allocation (includes full hex data)
   - **Input Limits**: p: 0-10,000, h: 0-1,000 KB, m: 0-1,000,000 KB (prevents resource exhaustion)
 
 ## Input Validation
