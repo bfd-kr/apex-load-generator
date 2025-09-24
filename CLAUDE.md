@@ -13,6 +13,10 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
 - **Load generation functions**:
   - `fibonacci()`: Recursive Fibonacci calculation for CPU load
   - `createHexString()`: Random hex string generation for CPU/memory load (optimized for low CPU usage)
+    - **Purpose**: Generate hex strings of specified size for load testing with minimal CPU overhead
+    - **Behavior**: Directly generates hex characters (0-9, a-f) using `math/rand` instead of byte-to-hex conversion
+    - **Optimization**: Avoids expensive `hex.EncodeToString()` and crypto-grade random generation for better performance
+    - **Important**: Uses `math/rand.Intn(16)` for efficiency - do not revert to `crypto/rand` or `hex.EncodeToString()`
   - `allocateMemory()`: Memory allocation for memory pressure testing
     - **Purpose**: Temporarily allocate memory to create memory pressure, then allow natural garbage collection
     - **Behavior**: Allocates k kilobytes, touches memory at 4KB page boundaries to ensure real allocation, then lets Go's GC handle cleanup naturally
