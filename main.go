@@ -143,6 +143,29 @@ func getFibonacciHex(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"f": f, "fibonacci": fResult, "h": h, "hexString": hResult}})
 }
 
+// getPrimesHex handles GET requests to generate primes and hex string.
+func getPrimesHex(c *gin.Context) {
+	p := c.Param("p")
+	h := c.Param("h")
+	pNum, err := strconv.Atoi(p)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
+		return
+	}
+	hNum, err := strconv.Atoi(h)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
+		return
+	}
+	pResult := generatePrimes(pNum)
+	hResult, err := createHexString(hNum)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"p": p, "primes": pResult, "h": h, "hexString": hResult}})
+}
+
 // create function fibonacci, hex, memory
 func fibonacciHexMemory(c *gin.Context) {
 	f := c.Param("f")
@@ -178,8 +201,47 @@ func fibonacciHexMemory(c *gin.Context) {
 	}
 
 	allocateMemory(mNum)
-	
+
 	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"f": f, "fibonacci": fResult, "h": h, "hexString": hResult, "m": "done"}})
+}
+
+// primesHexMemory handles GET requests to generate primes, hex string, and allocate memory.
+func primesHexMemory(c *gin.Context) {
+	p := c.Param("p")
+	h := c.Param("h")
+	m := c.Param("m")
+	pNum, err := strconv.Atoi(p)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "p: invalid number"})
+		return
+	}
+
+	hNum, err := strconv.Atoi(h)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: invalid number"})
+		return
+	}
+
+	mNum, err := strconv.Atoi(m)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "m: invalid number"})
+		return
+	}
+
+	pResult := generatePrimes(pNum)
+	hResult, err := createHexString(hNum)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
+		return
+	}
+
+	allocateMemory(mNum)
+
+	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"p": p, "primes": pResult, "h": h, "hexString": hResult, "m": "done"}})
 }
 
 func main() {
@@ -190,7 +252,9 @@ func main() {
 	router.GET("/hex/:h", getHexString)
 	router.GET("/memory/:m", getMemory)
 	router.GET("/fibonacci/hex/:f/:h", getFibonacciHex)
+	router.GET("/primes/hex/:p/:h", getPrimesHex)
 	router.GET("/fibonacci/hex/memory/:f/:h/:m", fibonacciHexMemory)
+	router.GET("/primes/hex/memory/:p/:h/:m", primesHexMemory)
 
 	router.Run(":8080")
 }
