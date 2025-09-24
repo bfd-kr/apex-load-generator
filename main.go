@@ -497,9 +497,141 @@ func primesHexMemory(c *gin.Context) {
 	})
 }
 
+// getIndex serves the API documentation homepage
+func getIndex(c *gin.Context) {
+	html := `<!DOCTYPE html>
+<html>
+<head>
+    <title>Apex Load Generator API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 3px solid #4CAF50; padding-bottom: 10px; }
+        h2 { color: #555; margin-top: 30px; }
+        .endpoint { background: #f9f9f9; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #4CAF50; }
+        .method { background: #4CAF50; color: white; padding: 3px 8px; border-radius: 3px; font-weight: bold; }
+        .deprecated { border-left-color: #ff9800; }
+        .deprecated .method { background: #ff9800; }
+        .example { background: #e8f5e8; padding: 10px; margin: 8px 0; border-radius: 3px; font-family: monospace; }
+        .limits { background: #fff3cd; padding: 10px; margin: 8px 0; border-radius: 3px; border: 1px solid #ffeaa7; }
+        a { color: #4CAF50; text-decoration: none; font-weight: bold; }
+        a:hover { text-decoration: underline; }
+        .note { background: #d1ecf1; padding: 10px; margin: 8px 0; border-radius: 3px; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Apex Load Generator API</h1>
+        <p>A Go-based HTTP service for creating computational load through CPU calculations, memory allocation, and hex string generation. All endpoints return JSON with both operation results and request-level performance metrics.</p>
+
+        <h2>🔢 Single Operations</h2>
+
+        <div class="endpoint">
+            <span class="method">GET</span> <strong>/primes/{p}</strong> - Generate Prime Numbers (Recommended)
+            <div class="example">
+                Example: <a href="/primes/100">/primes/100</a> - Generate first 100 prime numbers
+            </div>
+            <div class="limits">Limits: p = 0-10,000 | Best for predictable CPU load testing</div>
+        </div>
+
+        <div class="endpoint">
+            <span class="method">GET</span> <strong>/memory/{m}</strong> - Allocate Memory
+            <div class="example">
+                Example: <a href="/memory/1024">/memory/1024</a> - Allocate 1MB (1024 KB) of memory
+            </div>
+            <div class="limits">Limits: m = 0-1,000,000 KB | Memory is allocated then freed naturally</div>
+        </div>
+
+        <div class="endpoint">
+            <span class="method">GET</span> <strong>/hex/{h}</strong> - Generate Hex String
+            <div class="example">
+                Example: <a href="/hex/10">/hex/10</a> - Generate 10KB of hex data
+            </div>
+            <div class="limits">Limits: h = 0-1,000 KB | Returns full hex data for bandwidth testing</div>
+        </div>
+
+        <div class="endpoint deprecated">
+            <span class="method">GET</span> <strong>/fibonacci/{f}</strong> - Fibonacci Calculation (Deprecated)
+            <div class="example">
+                Example: <a href="/fibonacci/30">/fibonacci/30</a> - Calculate 30th Fibonacci number
+            </div>
+            <div class="limits">Limits: f = 0-45 | ⚠️ Deprecated: Use /primes for predictable CPU testing</div>
+        </div>
+
+        <h2>🔄 Combined Operations</h2>
+
+        <div class="endpoint">
+            <span class="method">GET</span> <strong>/primes/hex/{p}/{h}</strong> - Prime + Hex Generation
+            <div class="example">
+                Example: <a href="/primes/hex/500/50">/primes/hex/500/50</a> - 500 primes + 50KB hex
+            </div>
+            <div class="limits">Limits: p = 0-10,000, h = 0-1,000 KB</div>
+        </div>
+
+        <div class="endpoint">
+            <span class="method">GET</span> <strong>/primes/hex/memory/{p}/{h}/{m}</strong> - Full Load Test
+            <div class="example">
+                Example: <a href="/primes/hex/memory/1000/100/2048">/primes/hex/memory/1000/100/2048</a> - Complete load test
+            </div>
+            <div class="limits">Limits: p = 0-10,000, h = 0-1,000 KB, m = 0-1,000,000 KB</div>
+        </div>
+
+        <div class="endpoint deprecated">
+            <span class="method">GET</span> <strong>/fibonacci/hex/{f}/{h}</strong> - Fibonacci + Hex (Deprecated)
+            <div class="example">
+                Example: <a href="/fibonacci/hex/25/50">/fibonacci/hex/25/50</a> - Fibonacci + 50KB hex
+            </div>
+            <div class="limits">Limits: f = 0-45, h = 0-1,000 KB | ⚠️ Use /primes/hex instead</div>
+        </div>
+
+        <div class="endpoint deprecated">
+            <span class="method">GET</span> <strong>/fibonacci/hex/memory/{f}/{h}/{m}</strong> - Fibonacci + Hex + Memory (Deprecated)
+            <div class="example">
+                Example: <a href="/fibonacci/hex/memory/20/50/1024">/fibonacci/hex/memory/20/50/1024</a> - All operations
+            </div>
+            <div class="limits">Limits: f = 0-45, h = 0-1,000 KB, m = 0-1,000,000 KB | ⚠️ Use /primes/hex/memory instead</div>
+        </div>
+
+        <h2>📊 Response Format</h2>
+        <div class="note">
+            All endpoints return JSON with:
+            <ul>
+                <li><strong>data</strong>: Operation results (timing, counts, generated content)</li>
+                <li><strong>request_metrics</strong>: Performance data (duration_us, cpu_usage_percent, memory_used_bytes, goroutine counts)</li>
+            </ul>
+        </div>
+
+        <h2>🎯 Load Testing Examples</h2>
+        <div class="example">
+            Light CPU: <a href="/primes/100">/primes/100</a><br>
+            Heavy CPU: <a href="/primes/5000">/primes/5000</a><br>
+            Memory Test: <a href="/memory/100000">/memory/100000</a><br>
+            Bandwidth Test: <a href="/hex/1000">/hex/1000</a><br>
+            Combined Load: <a href="/primes/hex/memory/2000/500/50000">/primes/hex/memory/2000/500/50000</a>
+        </div>
+
+        <div class="note">
+            <strong>💡 Performance Tips:</strong>
+            <ul>
+                <li>Prime generation: Linear complexity, predictable scaling</li>
+                <li>Fibonacci: Exponential complexity, deprecated for unpredictable performance</li>
+                <li>Hex generation: Optimized for low CPU usage, good for bandwidth testing</li>
+                <li>Memory allocation: Uses page-boundary touching for realistic patterns</li>
+                <li>All timing: Microsecond precision for accurate performance analysis</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>`
+
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.String(200, html)
+}
+
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	router := gin.Default()
+	router.GET("/", getIndex)
 	router.GET("/fibonacci/:f", getFibonacci)
 	router.GET("/primes/:p", getPrimes)
 	router.GET("/hex/:h", getHexString)
