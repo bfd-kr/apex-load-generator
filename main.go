@@ -41,6 +41,34 @@ func fibonacci(n int) int {
 	return fibonacci(n-1) + fibonacci(n-2)
 }
 
+// generatePrimes generates the first n prime numbers.
+func generatePrimes(n int) []int {
+	if n <= 0 {
+		return []int{}
+	}
+	primes := []int{2}
+	if n == 1 {
+		return primes
+	}
+
+	for candidate := 3; len(primes) < n; candidate += 2 {
+		isPrime := true
+		for _, prime := range primes {
+			if prime*prime > candidate {
+				break
+			}
+			if candidate%prime == 0 {
+				isPrime = false
+				break
+			}
+		}
+		if isPrime {
+			primes = append(primes, candidate)
+		}
+	}
+	return primes
+}
+
 // getFibonacci handles GET requests to calculate the nth Fibonacci number.
 func getFibonacci(c *gin.Context) {
 	f := c.Param("f")
@@ -51,6 +79,18 @@ func getFibonacci(c *gin.Context) {
 	}
 	result := fibonacci(num)
 	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"f": f, "fibonacci": result}})
+}
+
+// getPrimes handles GET requests to generate the first n prime numbers.
+func getPrimes(c *gin.Context) {
+	p := c.Param("p")
+	num, err := strconv.Atoi(p)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
+		return
+	}
+	result := generatePrimes(num)
+	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"p": p, "primes": result}})
 }
 
 // createHexString generates a hex string of n kilobytes.
@@ -144,6 +184,7 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	router := gin.Default()
 	router.GET("/fibonacci/:f", getFibonacci)
+	router.GET("/primes/:p", getPrimes)
 	router.GET("/hex/:h", getHexString)
 	router.GET("/memory/:m", getMemory)
 	router.GET("/fibonacci/hex/:f/:h", getFibonacciHex)

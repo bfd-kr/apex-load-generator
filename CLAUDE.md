@@ -11,7 +11,8 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
 - **Single-file application**: All code is in `main.go`
 - **Web framework**: Uses Gin for HTTP routing and JSON responses
 - **Load generation functions**:
-  - `fibonacci()`: Recursive Fibonacci calculation for CPU load
+  - `fibonacci()`: Recursive Fibonacci calculation for CPU load (exponential complexity - unpredictable scaling)
+  - `generatePrimes()`: Prime number generation for CPU load (linear complexity - predictable scaling)
   - `createHexString()`: Random hex string generation for CPU/memory load (optimized for low CPU usage)
     - **Purpose**: Generate hex strings of specified size for load testing with minimal CPU overhead
     - **Behavior**: Directly generates hex characters (0-9, a-f) using `math/rand` instead of byte-to-hex conversion
@@ -25,6 +26,7 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
 ## API Endpoints
 
 - `GET /fibonacci/:f` - Calculate nth Fibonacci number
+- `GET /primes/:p` - Generate first p prime numbers
 - `GET /hex/:h` - Generate hex string of h kilobytes
 - `GET /memory/:m` - Allocate m kilobytes of memory
 - `GET /fibonacci/hex/:f/:h` - Combined Fibonacci and hex generation
