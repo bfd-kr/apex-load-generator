@@ -217,6 +217,11 @@ func primesHexMemory(c *gin.Context) {
 		return
 	}
 
+	if pNum < 0 || pNum > 10000 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "p: number out of range (0-10000)"})
+		return
+	}
+
 	hNum, err := strconv.Atoi(h)
 
 	if err != nil {
@@ -224,10 +229,20 @@ func primesHexMemory(c *gin.Context) {
 		return
 	}
 
+	if hNum < 0 || hNum > 1000 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-1000)"})
+		return
+	}
+
 	mNum, err := strconv.Atoi(m)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "m: invalid number"})
+		return
+	}
+
+	if mNum < 0 || mNum > 1000000 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "m: number out of range (0-1000000)"})
 		return
 	}
 
