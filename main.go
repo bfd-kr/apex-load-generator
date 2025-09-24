@@ -84,9 +84,6 @@ func allocateMemory(k int) (MemoryResult, error) {
 // getMemory handles GET requests to allocate memory.
 func getMemory(c *gin.Context) {
 	metrics := startRequestMetrics()
-	defer func() {
-		metrics.finish()
-	}()
 
 	m := c.Param("m")
 	num, err := strconv.Atoi(m)
@@ -103,6 +100,7 @@ func getMemory(c *gin.Context) {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "memory allocation failed"})
 		return
 	}
+	metrics.finish()
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"data":            result,
 		"request_metrics": metrics,
@@ -204,9 +202,6 @@ func generatePrimes(n int) PrimeResult {
 // Deprecated: Use getPrimes() for more predictable CPU load testing.
 func getFibonacci(c *gin.Context) {
 	metrics := startRequestMetrics()
-	defer func() {
-		metrics.finish()
-	}()
 
 	f := c.Param("f")
 	num, err := strconv.Atoi(f)
@@ -219,6 +214,7 @@ func getFibonacci(c *gin.Context) {
 		return
 	}
 	result := fibonacci(num)
+	metrics.finish()
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"data":            result,
 		"request_metrics": metrics,
@@ -228,9 +224,6 @@ func getFibonacci(c *gin.Context) {
 // getPrimes handles GET requests to generate the first n prime numbers.
 func getPrimes(c *gin.Context) {
 	metrics := startRequestMetrics()
-	defer func() {
-		metrics.finish()
-	}()
 
 	p := c.Param("p")
 	num, err := strconv.Atoi(p)
@@ -243,6 +236,7 @@ func getPrimes(c *gin.Context) {
 		return
 	}
 	result := generatePrimes(num)
+	metrics.finish()
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"data":            result,
 		"request_metrics": metrics,
@@ -279,9 +273,6 @@ func createHexString(n int) (HexResult, error) {
 // getHexString handles GET requests to generate a hex string of n kilobytes.
 func getHexString(c *gin.Context) {
 	metrics := startRequestMetrics()
-	defer func() {
-		metrics.finish()
-	}()
 
 	h := c.Param("h")
 	num, err := strconv.Atoi(h)
@@ -298,6 +289,7 @@ func getHexString(c *gin.Context) {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
 		return
 	}
+	metrics.finish()
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"data":            result,
 		"request_metrics": metrics,
@@ -306,9 +298,6 @@ func getHexString(c *gin.Context) {
 
 func getFibonacciHex(c *gin.Context) {
 	metrics := startRequestMetrics()
-	defer func() {
-		metrics.finish()
-	}()
 
 	f := c.Param("f")
 	h := c.Param("h")
@@ -336,6 +325,7 @@ func getFibonacciHex(c *gin.Context) {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
 		return
 	}
+	metrics.finish()
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"data":            map[string]interface{}{"fibonacci_result": fResult, "hex_result": hResult},
 		"request_metrics": metrics,
@@ -345,9 +335,6 @@ func getFibonacciHex(c *gin.Context) {
 // getPrimesHex handles GET requests to generate primes and hex string.
 func getPrimesHex(c *gin.Context) {
 	metrics := startRequestMetrics()
-	defer func() {
-		metrics.finish()
-	}()
 
 	p := c.Param("p")
 	h := c.Param("h")
@@ -375,6 +362,7 @@ func getPrimesHex(c *gin.Context) {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
 		return
 	}
+	metrics.finish()
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"data":            map[string]interface{}{"prime_result": pResult, "hex_result": hResult},
 		"request_metrics": metrics,
@@ -384,9 +372,6 @@ func getPrimesHex(c *gin.Context) {
 // create function fibonacci, hex, memory
 func fibonacciHexMemory(c *gin.Context) {
 	metrics := startRequestMetrics()
-	defer func() {
-		metrics.finish()
-	}()
 
 	f := c.Param("f")
 	h := c.Param("h")
@@ -441,6 +426,7 @@ func fibonacciHexMemory(c *gin.Context) {
 		return
 	}
 
+	metrics.finish()
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"data":            map[string]interface{}{"fibonacci_result": fResult, "hex_result": hResult, "memory_result": mResult},
 		"request_metrics": metrics,
@@ -450,9 +436,6 @@ func fibonacciHexMemory(c *gin.Context) {
 // primesHexMemory handles GET requests to generate primes, hex string, and allocate memory.
 func primesHexMemory(c *gin.Context) {
 	metrics := startRequestMetrics()
-	defer func() {
-		metrics.finish()
-	}()
 
 	p := c.Param("p")
 	h := c.Param("h")
@@ -507,6 +490,7 @@ func primesHexMemory(c *gin.Context) {
 		return
 	}
 
+	metrics.finish()
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"data":            map[string]interface{}{"prime_result": pResult, "hex_result": hResult, "memory_result": mResult},
 		"request_metrics": metrics,
