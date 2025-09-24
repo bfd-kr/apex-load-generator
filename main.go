@@ -4,17 +4,21 @@ import (
 	"encoding/hex"
 	"math/rand"
 	"net/http"
+	"runtime"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-// creates a byte slice of size mb and fills it with random data.
+// creates a byte slice of size mb and ensures actual memory allocation.
 func allocateMemory(k int) {
 	bytes := make([]byte, k*1024)
-	rand.Read(bytes)
-	bytes = nil
+	// Touch memory to ensure allocation
+	for i := 0; i < len(bytes); i += 4096 {
+		bytes[i] = 1
+	}
+	runtime.KeepAlive(bytes)
 }
 
 // getMemory handles GET requests to allocate memory.
