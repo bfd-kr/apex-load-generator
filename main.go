@@ -12,8 +12,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// creates a byte slice of size mb and ensures allocation.
-func allocateMemory(k int) (err error) {
+// MemoryResult holds the result of memory allocation including timing
+type MemoryResult struct {
+	SizeKB     int   `json:"size_kb"`
+	DurationMs int64 `json:"duration_ms"`
+}
+
+// allocateMemory creates a byte slice of size mb and ensures allocation.
+func allocateMemory(k int) (MemoryResult, error) {
+	start := time.Now()
+	var err error
+
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("memory allocation failed: %v", r)
@@ -26,7 +35,11 @@ func allocateMemory(k int) (err error) {
 		bytes[i] = 1
 	}
 	// Memory will be freed naturally by GC
-	return nil
+
+	return MemoryResult{
+		SizeKB:     k,
+		DurationMs: time.Since(start).Nanoseconds() / 1000000,
+	}, err
 }
 
 // getMemory handles GET requests to allocate memory.
@@ -41,20 +54,46 @@ func getMemory(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "m: number out of range (0-1000000)"})
 		return
 	}
-	if err := allocateMemory(num); err != nil {
+	result, err := allocateMemory(num)
+	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "memory allocation failed"})
 		return
 	}
-	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"m": m, "memory": "done"}})
+	c.IndentedJSON(http.StatusOK, gin.H{"data": result})
+}
+
+// FibonacciResult holds the result of Fibonacci calculation including timing
+type FibonacciResult struct {
+	N          int   `json:"n"`
+	Result     int   `json:"result"`
+	DurationMs int64 `json:"duration_ms"`
 }
 
 // fibonacci calculates the nth Fibonacci number.
 // Deprecated: Use generatePrimes() for more predictable CPU load testing.
-func fibonacci(n int) int {
+func fibonacci(n int) FibonacciResult {
+	start := time.Now()
+
+	var result int
+	if n <= 1 {
+		result = n
+	} else {
+		result = fibonacciRecursive(n)
+	}
+
+	return FibonacciResult{
+		N:          n,
+		Result:     result,
+		DurationMs: time.Since(start).Nanoseconds() / 1000000,
+	}
+}
+
+// fibonacciRecursive is the actual recursive implementation
+func fibonacciRecursive(n int) int {
 	if n <= 1 {
 		return n
 	}
-	return fibonacci(n-1) + fibonacci(n-2)
+	return fibonacciRecursive(n-1) + fibonacciRecursive(n-2)
 }
 
 // PrimeResult holds the result of prime generation including timing
@@ -128,7 +167,7 @@ func getFibonacci(c *gin.Context) {
 		return
 	}
 	result := fibonacci(num)
-	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"f": f, "fibonacci": result}})
+	c.IndentedJSON(http.StatusOK, gin.H{"data": result})
 }
 
 // getPrimes handles GET requests to generate the first n prime numbers.
@@ -147,14 +186,31 @@ func getPrimes(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{"data": result})
 }
 
+// HexResult holds the result of hex string generation including timing
+type HexResult struct {
+	SizeKB     int    `json:"size_kb"`
+	Length     int    `json:"length"`
+	HexString  string `json:"hex_string"`
+	DurationMs int64  `json:"duration_ms"`
+}
+
 // createHexString generates a hex string of n kilobytes.
-func createHexString(n int) (string, error) {
+func createHexString(n int) (HexResult, error) {
+	start := time.Now()
+
 	hexChars := "0123456789abcdef"
 	result := make([]byte, n*1024)
 	for i := range result {
 		result[i] = hexChars[rand.Intn(16)]
 	}
-	return string(result), nil
+
+	hexString := string(result)
+	return HexResult{
+		SizeKB:     n,
+		Length:     len(hexString),
+		HexString:  hexString,
+		DurationMs: time.Since(start).Nanoseconds() / 1000000,
+	}, nil
 }
 
 // getHexString handles GET requests to generate a hex string of n kilobytes.
@@ -174,7 +230,7 @@ func getHexString(c *gin.Context) {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
 		return
 	}
-	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"h": h, "hexString": result}})
+	c.IndentedJSON(http.StatusOK, gin.H{"data": result})
 }
 
 func getFibonacciHex(c *gin.Context) {
@@ -204,7 +260,7 @@ func getFibonacciHex(c *gin.Context) {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
 		return
 	}
-	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"f": f, "fibonacci": fResult, "h": h, "hexString": hResult}})
+	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"fibonacci_result": fResult, "hex_result": hResult}})
 }
 
 // getPrimesHex handles GET requests to generate primes and hex string.
@@ -235,7 +291,7 @@ func getPrimesHex(c *gin.Context) {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
 		return
 	}
-	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"prime_result": pResult, "h": h, "hexString": hResult}})
+	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"prime_result": pResult, "hex_result": hResult}})
 }
 
 // create function fibonacci, hex, memory
@@ -287,12 +343,13 @@ func fibonacciHexMemory(c *gin.Context) {
 		return
 	}
 
-	if err := allocateMemory(mNum); err != nil {
+	mResult, err := allocateMemory(mNum)
+	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "memory allocation failed"})
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"f": f, "fibonacci": fResult, "h": h, "hexString": hResult, "m": "done"}})
+	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"fibonacci_result": fResult, "hex_result": hResult, "memory_result": mResult}})
 }
 
 // primesHexMemory handles GET requests to generate primes, hex string, and allocate memory.
@@ -344,12 +401,13 @@ func primesHexMemory(c *gin.Context) {
 		return
 	}
 
-	if err := allocateMemory(mNum); err != nil {
+	mResult, err := allocateMemory(mNum)
+	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "memory allocation failed"})
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"prime_result": pResult, "h": h, "hexString": hResult, "m": "done"}})
+	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"prime_result": pResult, "hex_result": hResult, "memory_result": mResult}})
 }
 
 func main() {

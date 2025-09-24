@@ -15,6 +15,7 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
     - **Status**: Deprecated in favor of `generatePrimes()`
     - **Purpose**: Legacy CPU load testing with exponential time complexity
     - **Behavior**: Classic recursive implementation with O(2^n) complexity
+    - **Returns**: FibonacciResult struct with input n, result value, and timing information
     - **Important**: Provides unpredictable scaling - small input changes cause massive CPU usage differences
     - **Migration**: Replace with `generatePrimes()` for predictable CPU testing
   - `generatePrimes()`: Prime number generation for CPU load (linear complexity - predictable scaling)
@@ -27,20 +28,22 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
   - `createHexString()`: Random hex string generation for CPU/memory load (optimized for low CPU usage)
     - **Purpose**: Generate hex strings of specified size for load testing with minimal CPU overhead
     - **Behavior**: Directly generates hex characters (0-9, a-f) using `math/rand` instead of byte-to-hex conversion
+    - **Returns**: HexResult struct with size, length, hex string, and timing information
     - **Optimization**: Avoids expensive `hex.EncodeToString()` and crypto-grade random generation for better performance
     - **Important**: Uses `math/rand.Intn(16)` for efficiency - do not revert to `crypto/rand` or `hex.EncodeToString()`
   - `allocateMemory()`: Memory allocation for memory pressure testing
     - **Purpose**: Temporarily allocate memory to create memory pressure, then allow natural garbage collection
     - **Behavior**: Allocates k kilobytes, touches memory at 4KB page boundaries to ensure real allocation, then lets Go's GC handle cleanup naturally
+    - **Returns**: MemoryResult struct with size and timing information, plus error if allocation fails
     - **Error Handling**: Returns error if memory allocation fails (e.g., out of memory conditions)
     - **Important**: Do not force garbage collection with `runtime.GC()` - let it happen naturally for realistic load testing
 
 ## API Endpoints
 
-- `GET /fibonacci/:f` - **DEPRECATED** - Calculate nth Fibonacci number (use /primes instead)
+- `GET /fibonacci/:f` - **DEPRECATED** - Calculate nth Fibonacci number (returns timing and performance data)
 - `GET /primes/:p` - Generate first p prime numbers (returns timing and performance data)
-- `GET /hex/:h` - Generate hex string of h kilobytes
-- `GET /memory/:m` - Allocate m kilobytes of memory
+- `GET /hex/:h` - Generate hex string of h kilobytes (returns timing and performance data)
+- `GET /memory/:m` - Allocate m kilobytes of memory (returns timing and performance data)
 - `GET /fibonacci/hex/:f/:h` - **DEPRECATED** - Combined Fibonacci and hex generation (use /primes/hex instead)
 - `GET /primes/hex/:p/:h` - Combined prime generation and hex string creation (includes timing data)
 - `GET /fibonacci/hex/memory/:f/:h/:m` - **DEPRECATED** - Combined all three operations with Fibonacci (use /primes/hex/memory instead)
