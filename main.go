@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"runtime"
@@ -12,13 +13,20 @@ import (
 )
 
 // creates a byte slice of size mb and ensures allocation.
-func allocateMemory(k int) {
+func allocateMemory(k int) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("memory allocation failed: %v", r)
+		}
+	}()
+
 	bytes := make([]byte, k*1024)
 	// Touch memory to ensure allocation
 	for i := 0; i < len(bytes); i += 4096 {
 		bytes[i] = 1
 	}
 	// Memory will be freed naturally by GC
+	return nil
 }
 
 // getMemory handles GET requests to allocate memory.
@@ -29,7 +37,10 @@ func getMemory(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
 		return
 	}
-	allocateMemory(num)
+	if err := allocateMemory(num); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "memory allocation failed"})
+		return
+	}
 	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"m": m, "memory": "done"}})
 }
 
@@ -200,7 +211,10 @@ func fibonacciHexMemory(c *gin.Context) {
 		return
 	}
 
-	allocateMemory(mNum)
+	if err := allocateMemory(mNum); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "memory allocation failed"})
+		return
+	}
 
 	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"f": f, "fibonacci": fResult, "h": h, "hexString": hResult, "m": "done"}})
 }
@@ -254,7 +268,10 @@ func primesHexMemory(c *gin.Context) {
 		return
 	}
 
-	allocateMemory(mNum)
+	if err := allocateMemory(mNum); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "memory allocation failed"})
+		return
+	}
 
 	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"p": p, "primes": pResult, "h": h, "hexString": hResult, "m": "done"}})
 }

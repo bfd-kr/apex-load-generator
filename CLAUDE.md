@@ -30,6 +30,7 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
   - `allocateMemory()`: Memory allocation for memory pressure testing
     - **Purpose**: Temporarily allocate memory to create memory pressure, then allow natural garbage collection
     - **Behavior**: Allocates k kilobytes, touches memory at 4KB page boundaries to ensure real allocation, then lets Go's GC handle cleanup naturally
+    - **Error Handling**: Returns error if memory allocation fails (e.g., out of memory conditions)
     - **Important**: Do not force garbage collection with `runtime.GC()` - let it happen naturally for realistic load testing
 
 ## API Endpoints
@@ -53,6 +54,13 @@ The following endpoints have bounds checking to prevent resource exhaustion:
   - **h (hex KB)**: 0-1,000 - Prevents large memory allocations for hex strings
   - **m (memory KB)**: 0-1,000,000 - Prevents system memory exhaustion
 - **Other endpoints**: Currently have basic input validation but no bounds checking
+
+## Error Handling
+
+- **Memory allocation failures**: All endpoints that use `allocateMemory()` now handle allocation failures gracefully
+  - Returns HTTP 500 with "memory allocation failed" message
+  - Uses panic recovery to catch out-of-memory conditions
+  - Affected endpoints: `/memory/:m`, `/fibonacci/hex/memory/:f/:h/:m`, `/primes/hex/memory/:p/:h/:m`
 
 ## Development Commands
 
