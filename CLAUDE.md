@@ -42,6 +42,17 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
 - `GET /primes/hex/:p/:h` - Combined prime generation and hex string creation
 - `GET /fibonacci/hex/memory/:f/:h/:m` - **DEPRECATED** - Combined all three operations with Fibonacci (use /primes/hex/memory instead)
 - `GET /primes/hex/memory/:p/:h/:m` - Combined prime generation, hex string creation, and memory allocation
+  - **Input Limits**: p: 0-10,000, h: 0-1,000 KB, m: 0-1,000,000 KB (prevents resource exhaustion)
+
+## Input Validation
+
+The following endpoints have bounds checking to prevent resource exhaustion:
+
+- **`/primes/hex/memory`**: Validates all three parameters with strict limits
+  - **p (primes)**: 0-10,000 - Prevents excessive CPU usage from large prime generation
+  - **h (hex KB)**: 0-1,000 - Prevents large memory allocations for hex strings
+  - **m (memory KB)**: 0-1,000,000 - Prevents system memory exhaustion
+- **Other endpoints**: Currently have basic input validation but no bounds checking
 
 ## Development Commands
 
