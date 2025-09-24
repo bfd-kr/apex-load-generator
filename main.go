@@ -51,10 +51,12 @@ func getFibonacci(c *gin.Context) {
 
 // createHexString generates a hex string of n kilobytes.
 func createHexString(n int) (string, error) {
-	bytes := make([]byte, n*1024)
-	rand.Read(bytes)
-	hexString := hex.EncodeToString(bytes)
-	return hexString[:len(hexString)/2], nil
+	hexChars := "0123456789abcdef"
+	result := make([]byte, n*1024)
+	for i := range result {
+		result[i] = hexChars[rand.Intn(16)]
+	}
+	return string(result), nil
 }
 
 // getHexString handles GET requests to generate a hex string of n kilobytes.
