@@ -11,16 +11,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// creates a byte slice of size mb, ensures allocation, then frees it.
+// creates a byte slice of size mb and ensures allocation.
 func allocateMemory(k int) {
 	bytes := make([]byte, k*1024)
 	// Touch memory to ensure allocation
 	for i := 0; i < len(bytes); i += 4096 {
 		bytes[i] = 1
 	}
-	// Memory will be freed when function exits and GC runs
-	bytes = nil
-	runtime.GC()
+	// Memory will be freed naturally by GC
 }
 
 // getMemory handles GET requests to allocate memory.
