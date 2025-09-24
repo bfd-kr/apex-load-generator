@@ -21,7 +21,7 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
     - **Purpose**: CPU load testing with predictable, configurable intensity
     - **Behavior**: Generates first n prime numbers using trial division with optimizations (only test odd candidates, early termination)
     - **Complexity**: O(n^1.5) - much more predictable than exponential Fibonacci
-    - **Returns**: PrimeResult struct with timing information, count, last prime found, and full prime list
+    - **Returns**: PrimeResult struct with timing information, count, and last prime found (no full list for memory efficiency)
     - **Timing**: Uses high-resolution timer (time.Now()) not subject to process suspension
     - **Important**: Preferred over Fibonacci for consistent CPU load testing
   - `createHexString()`: Random hex string generation for CPU/memory load (optimized for low CPU usage)

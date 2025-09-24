@@ -59,7 +59,6 @@ func fibonacci(n int) int {
 
 // PrimeResult holds the result of prime generation including timing
 type PrimeResult struct {
-	Primes     []int `json:"primes"`
 	Count      int   `json:"count"`
 	LastPrime  int   `json:"last_prime"`
 	DurationMs int64 `json:"duration_ms"`
@@ -71,24 +70,26 @@ func generatePrimes(n int) PrimeResult {
 
 	if n <= 0 {
 		return PrimeResult{
-			Primes:     []int{},
 			Count:      0,
 			LastPrime:  0,
 			DurationMs: time.Since(start).Nanoseconds() / 1000000,
 		}
 	}
 
-	primes := []int{2}
 	if n == 1 {
 		return PrimeResult{
-			Primes:     primes,
 			Count:      1,
 			LastPrime:  2,
 			DurationMs: time.Since(start).Nanoseconds() / 1000000,
 		}
 	}
 
-	for candidate := 3; len(primes) < n; candidate += 2 {
+	// Keep track of primes found so far for trial division, but only store what we need
+	primes := []int{2}
+	lastPrime := 2
+	count := 1
+
+	for candidate := 3; count < n; candidate += 2 {
 		isPrime := true
 		for _, prime := range primes {
 			if prime*prime > candidate {
@@ -101,17 +102,13 @@ func generatePrimes(n int) PrimeResult {
 		}
 		if isPrime {
 			primes = append(primes, candidate)
+			lastPrime = candidate
+			count++
 		}
 	}
 
-	lastPrime := 0
-	if len(primes) > 0 {
-		lastPrime = primes[len(primes)-1]
-	}
-
 	return PrimeResult{
-		Primes:     primes,
-		Count:      len(primes),
+		Count:      count,
 		LastPrime:  lastPrime,
 		DurationMs: time.Since(start).Nanoseconds() / 1000000,
 	}
