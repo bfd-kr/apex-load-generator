@@ -47,13 +47,17 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
 
 ## Input Validation
 
-The following endpoints have bounds checking to prevent resource exhaustion:
+All endpoints now have comprehensive bounds checking to prevent resource exhaustion:
 
-- **`/primes/hex/memory`**: Validates all three parameters with strict limits
-  - **p (primes)**: 0-10,000 - Prevents excessive CPU usage from large prime generation
-  - **h (hex KB)**: 0-1,000 - Prevents large memory allocations for hex strings
-  - **m (memory KB)**: 0-1,000,000 - Prevents system memory exhaustion
-- **Other endpoints**: Currently have basic input validation but no bounds checking
+- **`/fibonacci/:f`**: f: 0-45 (prevents exponential explosion)
+- **`/primes/:p`**: p: 0-10,000 (prevents excessive CPU usage)
+- **`/hex/:h`**: h: 0-1,000 KB (prevents large memory allocations)
+- **`/memory/:m`**: m: 0-1,000,000 KB (prevents system memory exhaustion)
+- **Combined endpoints**: Apply limits for all respective parameters
+  - `/fibonacci/hex/:f/:h` - f: 0-45, h: 0-1,000 KB
+  - `/primes/hex/:p/:h` - p: 0-10,000, h: 0-1,000 KB
+  - `/fibonacci/hex/memory/:f/:h/:m` - f: 0-45, h: 0-1,000 KB, m: 0-1,000,000 KB
+  - `/primes/hex/memory/:p/:h/:m` - p: 0-10,000, h: 0-1,000 KB, m: 0-1,000,000 KB
 
 ## Error Handling
 

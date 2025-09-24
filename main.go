@@ -37,6 +37,10 @@ func getMemory(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
 		return
 	}
+	if num < 0 || num > 1000000 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "m: number out of range (0-1000000)"})
+		return
+	}
 	if err := allocateMemory(num); err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "memory allocation failed"})
 		return
@@ -90,6 +94,10 @@ func getFibonacci(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
 		return
 	}
+	if num < 0 || num > 45 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "f: number out of range (0-45)"})
+		return
+	}
 	result := fibonacci(num)
 	c.IndentedJSON(http.StatusOK, gin.H{"data": map[string]interface{}{"f": f, "fibonacci": result}})
 }
@@ -100,6 +108,10 @@ func getPrimes(c *gin.Context) {
 	num, err := strconv.Atoi(p)
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
+		return
+	}
+	if num < 0 || num > 10000 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "p: number out of range (0-10000)"})
 		return
 	}
 	result := generatePrimes(num)
@@ -124,6 +136,10 @@ func getHexString(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
 		return
 	}
+	if num < 0 || num > 1000 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-1000)"})
+		return
+	}
 	result, err := createHexString(num)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
@@ -140,9 +156,17 @@ func getFibonacciHex(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
 		return
 	}
+	if fNum < 0 || fNum > 45 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "f: number out of range (0-45)"})
+		return
+	}
 	hNum, err := strconv.Atoi(h)
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
+		return
+	}
+	if hNum < 0 || hNum > 1000 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-1000)"})
 		return
 	}
 	fResult := fibonacci(fNum)
@@ -163,9 +187,17 @@ func getPrimesHex(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
 		return
 	}
+	if pNum < 0 || pNum > 10000 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "p: number out of range (0-10000)"})
+		return
+	}
 	hNum, err := strconv.Atoi(h)
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
+		return
+	}
+	if hNum < 0 || hNum > 1000 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-1000)"})
 		return
 	}
 	pResult := generatePrimes(pNum)
@@ -189,6 +221,11 @@ func fibonacciHexMemory(c *gin.Context) {
 		return
 	}
 
+	if fNum < 0 || fNum > 45 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "f: number out of range (0-45)"})
+		return
+	}
+
 	hNum, err := strconv.Atoi(h)
 
 	if err != nil {
@@ -196,10 +233,20 @@ func fibonacciHexMemory(c *gin.Context) {
 		return
 	}
 
+	if hNum < 0 || hNum > 1000 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-1000)"})
+		return
+	}
+
 	mNum, err := strconv.Atoi(m)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "m: invalid number"})
+		return
+	}
+
+	if mNum < 0 || mNum > 1000000 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "m: number out of range (0-1000000)"})
 		return
 	}
 
