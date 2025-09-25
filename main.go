@@ -211,9 +211,7 @@ type FibonacciResult struct {
 // fibonacci calculates the nth Fibonacci number.
 // Accepts either a single value (e.g., "30") or a range (e.g., "25..35")
 //
-// Deprecated: Use generatePrimes() for more predictable CPU load testing.
-// The fibonacci function has exponential time complexity O(2^n) which makes
-// load testing unpredictable and resource intensive for larger inputs.
+// Deprecated: fibonacci is deprecated. Use generatePrimes for more predictable CPU load testing.
 func fibonacci(param string) (FibonacciResult, error) {
 	start := time.Now()
 
@@ -339,8 +337,7 @@ func generatePrimes(param string) (PrimeResult, error) {
 
 // getFibonacci handles GET requests to calculate the nth Fibonacci number or a random position within a range.
 //
-// Deprecated: Use getPrimes() for more predictable CPU load testing.
-// This endpoint uses the fibonacci function which has exponential complexity.
+// Deprecated: getFibonacci is deprecated. Use getPrimes for more predictable CPU load testing.
 func getFibonacci(c *gin.Context) {
 	metrics := startRequestMetrics()
 
