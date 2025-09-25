@@ -12,6 +12,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	// MaxMemoryKB is the maximum memory allocation limit in kilobytes
+	MaxMemoryKB = 1000000
+)
+
 // RequestMetrics holds request-level performance metrics
 type RequestMetrics struct {
 	StartTime        time.Time `json:"-"`
@@ -96,8 +101,8 @@ func allocateMemory(param string) (MemoryResult, error) {
 			return MemoryResult{}, fmt.Errorf("minimum value cannot be greater than maximum")
 		}
 
-		if min > 1000000 || max > 1000000 {
-			return MemoryResult{}, fmt.Errorf("values must be within range (0-1000000)")
+		if min > MaxMemoryKB || max > MaxMemoryKB {
+			return MemoryResult{}, fmt.Errorf("values must be within range (0-%d)", MaxMemoryKB)
 		}
 
 		k = min + rand.Intn(max-min+1)
@@ -109,8 +114,8 @@ func allocateMemory(param string) (MemoryResult, error) {
 			return MemoryResult{}, fmt.Errorf("invalid number: %v", err)
 		}
 
-		if size < 0 || size > 1000000 {
-			return MemoryResult{}, fmt.Errorf("number out of range (0-1000000)")
+		if size < 0 || size > MaxMemoryKB {
+			return MemoryResult{}, fmt.Errorf("number out of range (0-%d)", MaxMemoryKB)
 		}
 
 		k = size
