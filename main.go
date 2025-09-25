@@ -600,33 +600,37 @@ func getIndex(c *gin.Context) {
         <div class="endpoint">
             <span class="method">GET</span> <strong>/primes/hex/{p}/{h}</strong> - Prime + Hex Generation
             <div class="example">
-                Example: <a href="/primes/hex/500/50">/primes/hex/500/50</a> - 500 primes + 50KB hex
+                Example: <a href="/primes/hex/500/50">/primes/hex/500/50</a> - 500 primes + 50KB hex<br>
+                Range: <a href="/primes/hex/100..1000/25..100">/primes/hex/100..1000/25..100</a> - Variable primes + variable hex size
             </div>
-            <div class="limits">Limits: p = 0-10,000, h = 0-10,000 KB</div>
+            <div class="limits">Limits: p = 0-10,000, h = 0-10,000 KB | Both parameters support ranges (e.g., 100..1000)</div>
         </div>
 
         <div class="endpoint">
             <span class="method">GET</span> <strong>/primes/hex/memory/{p}/{h}/{m}</strong> - Full Load Test
             <div class="example">
-                Example: <a href="/primes/hex/memory/1000/100/2048">/primes/hex/memory/1000/100/2048</a> - Complete load test
+                Example: <a href="/primes/hex/memory/1000/100/2048">/primes/hex/memory/1000/100/2048</a> - Complete load test<br>
+                Range: <a href="/primes/hex/memory/500..2000/50..200/1000..5000">/primes/hex/memory/500..2000/50..200/1000..5000</a> - Variable everything
             </div>
-            <div class="limits">Limits: p = 0-10,000, h = 0-10,000 KB, m = 0-1,000,000 KB</div>
+            <div class="limits">Limits: p = 0-10,000, h = 0-10,000 KB, m = 0-1,000,000 KB | All parameters support ranges</div>
         </div>
 
         <div class="endpoint deprecated">
             <span class="method">GET</span> <strong>/fibonacci/hex/{f}/{h}</strong> - Fibonacci + Hex (Deprecated)
             <div class="example">
-                Example: <a href="/fibonacci/hex/25/50">/fibonacci/hex/25/50</a> - Fibonacci + 50KB hex
+                Example: <a href="/fibonacci/hex/25/50">/fibonacci/hex/25/50</a> - Fibonacci + 50KB hex<br>
+                Range: <a href="/fibonacci/hex/20..30/25..100">/fibonacci/hex/20..30/25..100</a> - Variable Fibonacci + variable hex size
             </div>
-            <div class="limits">Limits: f = 0-45, h = 0-10,000 KB | ⚠️ Use /primes/hex instead</div>
+            <div class="limits">Limits: f = 0-45, h = 0-10,000 KB | ⚠️ Use /primes/hex instead | Both parameters support ranges</div>
         </div>
 
         <div class="endpoint deprecated">
             <span class="method">GET</span> <strong>/fibonacci/hex/memory/{f}/{h}/{m}</strong> - Fibonacci + Hex + Memory (Deprecated)
             <div class="example">
-                Example: <a href="/fibonacci/hex/memory/20/50/1024">/fibonacci/hex/memory/20/50/1024</a> - All operations
+                Example: <a href="/fibonacci/hex/memory/20/50/1024">/fibonacci/hex/memory/20/50/1024</a> - All operations<br>
+                Range: <a href="/fibonacci/hex/memory/15..25/25..100/500..2000">/fibonacci/hex/memory/15..25/25..100/500..2000</a> - Variable everything
             </div>
-            <div class="limits">Limits: f = 0-45, h = 0-10,000 KB, m = 0-1,000,000 KB | ⚠️ Use /primes/hex/memory instead</div>
+            <div class="limits">Limits: f = 0-45, h = 0-10,000 KB, m = 0-1,000,000 KB | ⚠️ Use /primes/hex/memory instead | All parameters support ranges</div>
         </div>
 
         <h2>📊 Response Format</h2>

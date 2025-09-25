@@ -25,12 +25,26 @@ A Go-based HTTP service for creating computational load through various operatio
    curl http://localhost:8080/primes/100
    ```
 
+3. **Use the web interface**:
+   Open your browser to `http://localhost:8080` for an interactive HTML interface with clickable examples for all endpoints.
+
 ### Docker Deployment
 
 1. **Build and deploy**:
    ```bash
    ./local-build-docker-push
    ```
+
+## Web Interface
+
+The service provides an interactive web interface at the root URL (`http://localhost:8080`) that includes:
+
+- **Clickable Examples**: Direct links to test all endpoints with predefined values
+- **Range Support**: Clickable links for testing range inputs (e.g., `100..500`) that randomly select values within the specified range
+- **Combined Operations**: Easy access to multi-operation endpoints with both single values and ranges
+- **Visual Documentation**: Color-coded endpoints with deprecation warnings and limits clearly displayed
+
+The web interface makes it easy to test the API without requiring curl commands or external tools.
 
 ## API Endpoints
 
@@ -124,22 +138,30 @@ curl http://localhost:8080/fibonacci/25..35
 ```bash
 GET /primes/hex/{p}/{h}
 ```
-Generate `p` prime numbers and `h` kilobytes of hex data.
+Generate `p` prime numbers and `h` kilobytes of hex data. Both parameters support ranges.
 
-**Example**:
+**Examples**:
 ```bash
+# Fixed values
 curl http://localhost:8080/primes/hex/500/50
+
+# Range values (random selection within ranges)
+curl http://localhost:8080/primes/hex/100..1000/25..100
 ```
 
 #### Prime + Hex + Memory (Full Load Test)
 ```bash
 GET /primes/hex/memory/{p}/{h}/{m}
 ```
-Comprehensive load test: generate `p` primes, `h` KB hex data, and allocate `m` KB memory.
+Comprehensive load test: generate `p` primes, `h` KB hex data, and allocate `m` KB memory. All parameters support ranges.
 
-**Example**:
+**Examples**:
 ```bash
+# Fixed values
 curl http://localhost:8080/primes/hex/memory/1000/100/2048
+
+# Range values (random selection within ranges)
+curl http://localhost:8080/primes/hex/memory/500..2000/50..200/1000..5000
 ```
 
 ## Input Limits
@@ -207,7 +229,11 @@ curl http://localhost:8080/hex/500..2000
 
 ### Combined Load Test
 ```bash
+# Fixed values
 curl http://localhost:8080/primes/hex/memory/2000/500/50000
+
+# Variable load test with ranges
+curl http://localhost:8080/primes/hex/memory/1000..3000/200..1000/25000..75000
 ```
 
 ## Error Handling
