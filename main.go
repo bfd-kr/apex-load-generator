@@ -56,8 +56,9 @@ func (rm *RequestMetrics) finish() {
 
 // MemoryResult holds the result of memory allocation including timing
 type MemoryResult struct {
-	SizeKB     int   `json:"size_kb"`
-	DurationUs int64 `json:"duration_us"`
+	SizeKB     int     `json:"size_kb"`
+	DurationUs int64   `json:"duration_us"`
+	DurationMs float64 `json:"duration_ms"`
 }
 
 // allocateMemory creates a byte slice of size mb and ensures allocation.
@@ -78,9 +79,11 @@ func allocateMemory(k int) (MemoryResult, error) {
 	}
 	// Memory will be freed naturally by GC
 
+	duration := time.Since(start)
 	return MemoryResult{
 		SizeKB:     k,
-		DurationUs: time.Since(start).Nanoseconds() / 1000,
+		DurationUs: duration.Nanoseconds() / 1000,
+		DurationMs: float64(duration.Nanoseconds()) / 1000000.0,
 	}, err
 }
 
@@ -112,9 +115,10 @@ func getMemory(c *gin.Context) {
 
 // FibonacciResult holds the result of Fibonacci calculation including timing
 type FibonacciResult struct {
-	N          int   `json:"n"`
-	Result     int   `json:"result"`
-	DurationUs int64 `json:"duration_us"`
+	N          int     `json:"n"`
+	Result     int     `json:"result"`
+	DurationUs int64   `json:"duration_us"`
+	DurationMs float64 `json:"duration_ms"`
 }
 
 // fibonacci calculates the nth Fibonacci number.
@@ -129,10 +133,12 @@ func fibonacci(n int) FibonacciResult {
 		result = fibonacciRecursive(n)
 	}
 
+	duration := time.Since(start)
 	return FibonacciResult{
 		N:          n,
 		Result:     result,
-		DurationUs: time.Since(start).Nanoseconds() / 1000,
+		DurationUs: duration.Nanoseconds() / 1000,
+		DurationMs: float64(duration.Nanoseconds()) / 1000000.0,
 	}
 }
 
@@ -146,9 +152,10 @@ func fibonacciRecursive(n int) int {
 
 // PrimeResult holds the result of prime generation including timing
 type PrimeResult struct {
-	Count      int   `json:"count"`
-	LastPrime  int   `json:"last_prime"`
-	DurationUs int64 `json:"duration_us"`
+	Count      int     `json:"count"`
+	LastPrime  int     `json:"last_prime"`
+	DurationUs int64   `json:"duration_us"`
+	DurationMs float64 `json:"duration_ms"`
 }
 
 // generatePrimes generates the first n prime numbers and returns timing information.
@@ -156,18 +163,22 @@ func generatePrimes(n int) PrimeResult {
 	start := time.Now()
 
 	if n <= 0 {
+		duration := time.Since(start)
 		return PrimeResult{
 			Count:      0,
 			LastPrime:  0,
-			DurationUs: time.Since(start).Nanoseconds() / 1000,
+			DurationUs: duration.Nanoseconds() / 1000,
+			DurationMs: float64(duration.Nanoseconds()) / 1000000.0,
 		}
 	}
 
 	if n == 1 {
+		duration := time.Since(start)
 		return PrimeResult{
 			Count:      1,
 			LastPrime:  2,
-			DurationUs: time.Since(start).Nanoseconds() / 1000,
+			DurationUs: duration.Nanoseconds() / 1000,
+			DurationMs: float64(duration.Nanoseconds()) / 1000000.0,
 		}
 	}
 
@@ -194,10 +205,12 @@ func generatePrimes(n int) PrimeResult {
 		}
 	}
 
+	duration := time.Since(start)
 	return PrimeResult{
 		Count:      count,
 		LastPrime:  lastPrime,
-		DurationUs: time.Since(start).Nanoseconds() / 1000,
+		DurationUs: duration.Nanoseconds() / 1000,
+		DurationMs: float64(duration.Nanoseconds()) / 1000000.0,
 	}
 }
 
@@ -248,10 +261,11 @@ func getPrimes(c *gin.Context) {
 
 // HexResult holds the result of hex string generation including timing
 type HexResult struct {
-	SizeKB     int    `json:"size_kb"`
-	Length     int    `json:"length"`
-	HexString  string `json:"hex_string"`
-	DurationUs int64  `json:"duration_us"`
+	SizeKB     int     `json:"size_kb"`
+	Length     int     `json:"length"`
+	HexString  string  `json:"hex_string"`
+	DurationUs int64   `json:"duration_us"`
+	DurationMs float64 `json:"duration_ms"`
 }
 
 // createHexString generates a hex string of n kilobytes.
@@ -265,11 +279,13 @@ func createHexString(n int) (HexResult, error) {
 	}
 
 	hexString := string(result)
+	duration := time.Since(start)
 	return HexResult{
 		SizeKB:     n,
 		Length:     len(hexString),
 		HexString:  hexString,
-		DurationUs: time.Since(start).Nanoseconds() / 1000,
+		DurationUs: duration.Nanoseconds() / 1000,
+		DurationMs: float64(duration.Nanoseconds()) / 1000000.0,
 	}, nil
 }
 
@@ -599,7 +615,7 @@ func getIndex(c *gin.Context) {
         <div class="note">
             All endpoints return JSON with:
             <ul>
-                <li><strong>data</strong>: Operation results (timing, counts, generated content)</li>
+                <li><strong>data</strong>: Operation results (timing in both microseconds and milliseconds, counts, generated content)</li>
                 <li><strong>request_metrics</strong>: Performance data (duration_us, duration_ms, cpu_usage_percent, memory_used_bytes, goroutine counts)</li>
             </ul>
         </div>

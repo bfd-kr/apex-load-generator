@@ -55,10 +55,12 @@ curl http://localhost:8080/primes/1000
   "data": {
     "count": 1000,
     "last_prime": 7919,
-    "duration_us": 1234
+    "duration_us": 1234,
+    "duration_ms": 1.234
   },
   "request_metrics": {
     "duration_us": 1456,
+    "duration_ms": 1.456,
     "cpu_usage_percent": 145.6,
     "memory_used_bytes": 8192,
     "goroutines_before": 8,
@@ -134,10 +136,16 @@ To prevent resource exhaustion, all endpoints enforce the following limits:
 
 Every response includes detailed performance metrics:
 
+**Request-Level Metrics:**
 - **`duration_us`**: Total request duration in microseconds
+- **`duration_ms`**: Total request duration in milliseconds
 - **`cpu_usage_percent`**: Estimated CPU usage during request
 - **`memory_used_bytes`**: Memory delta (allocated - freed)
 - **`goroutines_before/after`**: Goroutine count tracking
+
+**Operation-Level Metrics (in data field):**
+- **`duration_us`**: Operation-specific timing in microseconds
+- **`duration_ms`**: Operation-specific timing in milliseconds
 
 ## Load Testing Examples
 
@@ -186,7 +194,7 @@ The service returns appropriate HTTP status codes:
 - **Fibonacci**: Exponential complexity, deprecated for unpredictable performance
 - **Hex generation**: Optimized for low CPU usage, good for bandwidth testing
 - **Memory allocation**: Uses page-boundary touching for realistic allocation patterns
-- **Timing precision**: Microsecond-level accuracy for performance analysis
+- **Timing precision**: Microsecond and millisecond accuracy for performance analysis
 
 ## Development
 
