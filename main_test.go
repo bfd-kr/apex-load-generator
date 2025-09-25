@@ -315,7 +315,10 @@ func TestFibonacci(t *testing.T) {
 
 			if !strings.Contains(tt.param, "..") {
 				// Single value test - verify the position (N) and result
-				expectedN, _ := strconv.Atoi(tt.param)
+				expectedN, err := strconv.Atoi(tt.param)
+				if err != nil {
+					t.Fatalf("Test case param should be a valid integer, got error: %v", err)
+				}
 				if result.N != expectedN {
 					t.Errorf("Expected N=%d, got %d", expectedN, result.N)
 				}

@@ -100,11 +100,12 @@ func startRequestMetrics() *RequestMetrics {
 	}
 }
 
-// getCPUTime returns the current goroutine's CPU time
+// getCPUTime returns a placeholder for CPU time measurement
+// TODO: Implement actual CPU time measurement using platform-specific syscalls
 func getCPUTime() int64 {
-	// Use a simple timestamp for CPU time approximation
-	// In a production system, you'd use syscalls for actual CPU time
-	return time.Now().UnixNano()
+	// Return 0 as we don't have actual CPU time measurement
+	// This will result in CPU usage being set to a sentinel value
+	return 0
 }
 
 // finishRequestMetrics completes request metrics collection
@@ -122,16 +123,9 @@ func (rm *RequestMetrics) finish() {
 	memoryAfter := int64(memStats.Alloc)
 	rm.MemoryUsedBytes = memoryAfter - rm.MemoryUsedBytes
 
-	// Calculate CPU usage percentage based on wall-clock time and CPU cores
-	// This provides a rough estimate of CPU utilization during the request
-	endCPUTime := getCPUTime()
-	cpuTimeDelta := endCPUTime - rm.StartCPUTime
-	if duration > 0 {
-		// Approximate CPU usage as a percentage of one CPU core
-		rm.CPUUsagePercent = float64(cpuTimeDelta) / float64(duration.Nanoseconds()) * 100.0 / float64(runtime.NumCPU())
-	} else {
-		rm.CPUUsagePercent = 0.0
-	}
+	// CPU usage calculation is not implemented with actual CPU time measurement
+	// Set to sentinel value to indicate unavailable/inaccurate measurement
+	rm.CPUUsagePercent = -1.0
 }
 
 // MemoryResult holds the result of memory allocation including timing
