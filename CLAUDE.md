@@ -43,10 +43,10 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
 
 ## API Endpoints
 
-- `GET /fibonacci/:f` - **DEPRECATED** - Calculate nth Fibonacci number (returns timing data in both microseconds and milliseconds)
-- `GET /primes/:p` - Generate first p prime numbers (returns timing data in both microseconds and milliseconds)
+- `GET /fibonacci/:f` - **DEPRECATED** - Calculate nth Fibonacci number or random position within range (returns timing data in both microseconds and milliseconds)
+- `GET /primes/:p` - Generate first p prime numbers or random count within range (returns timing data in both microseconds and milliseconds)
 - `GET /hex/:h` - Generate hex string of h kilobytes or random size within range (returns full hex data with timing in both microseconds and milliseconds)
-- `GET /memory/:m` - Allocate m kilobytes of memory (returns timing data in both microseconds and milliseconds)
+- `GET /memory/:m` - Allocate m kilobytes of memory or random size within range (returns timing data in both microseconds and milliseconds)
 - `GET /fibonacci/hex/:f/:h` - **DEPRECATED** - Combined Fibonacci and hex generation (use /primes/hex instead)
 - `GET /primes/hex/:p/:h` - Combined prime generation and hex string creation (includes full hex data with timing in both microseconds and milliseconds)
 - `GET /fibonacci/hex/memory/:f/:h/:m` - **DEPRECATED** - Combined all three operations with Fibonacci (use /primes/hex/memory instead)
@@ -57,10 +57,10 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
 
 All endpoints now have comprehensive bounds checking to prevent resource exhaustion:
 
-- **`/fibonacci/:f`**: f: 0-45 (prevents exponential explosion)
-- **`/primes/:p`**: p: 0-10,000 (prevents excessive CPU usage)
+- **`/fibonacci/:f`**: f: 0-45 or range (e.g., 25..35) (prevents exponential explosion)
+- **`/primes/:p`**: p: 0-10,000 or range (e.g., 100..1000) (prevents excessive CPU usage)
 - **`/hex/:h`**: h: 0-10,000 KB or range (e.g., 100..500) (prevents excessive memory allocations)
-- **`/memory/:m`**: m: 0-1,000,000 KB (prevents system memory exhaustion)
+- **`/memory/:m`**: m: 0-1,000,000 KB or range (e.g., 500..2000) (prevents system memory exhaustion)
 - **Combined endpoints**: Apply limits for all respective parameters
   - `/fibonacci/hex/:f/:h` - f: 0-45, h: 0-10,000 KB
   - `/primes/hex/:p/:h` - p: 0-10,000, h: 0-10,000 KB

@@ -57,13 +57,14 @@ func (rm *RequestMetrics) finish() {
 
 // MemoryResult holds the result of memory allocation including timing
 type MemoryResult struct {
-	SizeKB     int     `json:"size_kb"`
-	DurationUs int64   `json:"duration_us"`
-	DurationMs float64 `json:"duration_ms"`
+	SizeKB         int     `json:"size_kb"`
+	RequestedRange string  `json:"requested_range,omitempty"`
+	DurationUs     int64   `json:"duration_us"`
+	DurationMs     float64 `json:"duration_ms"`
 }
 
 // allocateMemory creates a byte slice of size mb and ensures allocation.
-func allocateMemory(k int) (MemoryResult, error) {
+func allocateMemory(k int, originalParam string, wasRange bool) (MemoryResult, error) {
 	start := time.Now()
 	var err error
 
@@ -81,28 +82,33 @@ func allocateMemory(k int) (MemoryResult, error) {
 	// Memory will be freed naturally by GC
 
 	duration := time.Since(start)
-	return MemoryResult{
+
+	memoryResult := MemoryResult{
 		SizeKB:     k,
 		DurationUs: duration.Nanoseconds() / 1000,
 		DurationMs: float64(duration.Nanoseconds()) / 1000000.0,
-	}, err
+	}
+
+	// Only include requested_range if it was a range
+	if wasRange {
+		memoryResult.RequestedRange = originalParam
+	}
+
+	return memoryResult, err
 }
 
-// getMemory handles GET requests to allocate memory.
+// getMemory handles GET requests to allocate memory of m kilobytes or a random size within a range.
 func getMemory(c *gin.Context) {
 	metrics := startRequestMetrics()
 
 	m := c.Param("m")
-	num, err := strconv.Atoi(m)
+	size, wasRange, err := parseMemorySize(m)
 	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("m: %v", err)})
 		return
 	}
-	if num < 0 || num > 1000000 {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "m: number out of range (0-1000000)"})
-		return
-	}
-	result, err := allocateMemory(num)
+
+	result, err := allocateMemory(size, m, wasRange)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "memory allocation failed"})
 		return
@@ -116,15 +122,16 @@ func getMemory(c *gin.Context) {
 
 // FibonacciResult holds the result of Fibonacci calculation including timing
 type FibonacciResult struct {
-	N          int     `json:"n"`
-	Result     int     `json:"result"`
-	DurationUs int64   `json:"duration_us"`
-	DurationMs float64 `json:"duration_ms"`
+	N              int     `json:"n"`
+	RequestedRange string  `json:"requested_range,omitempty"`
+	Result         int     `json:"result"`
+	DurationUs     int64   `json:"duration_us"`
+	DurationMs     float64 `json:"duration_ms"`
 }
 
 // fibonacci calculates the nth Fibonacci number.
 // Deprecated: Use generatePrimes() for more predictable CPU load testing.
-func fibonacci(n int) FibonacciResult {
+func fibonacci(n int, originalParam string, wasRange bool) FibonacciResult {
 	start := time.Now()
 
 	var result int
@@ -135,12 +142,20 @@ func fibonacci(n int) FibonacciResult {
 	}
 
 	duration := time.Since(start)
-	return FibonacciResult{
+
+	fibResult := FibonacciResult{
 		N:          n,
 		Result:     result,
 		DurationUs: duration.Nanoseconds() / 1000,
 		DurationMs: float64(duration.Nanoseconds()) / 1000000.0,
 	}
+
+	// Only include requested_range if it was a range
+	if wasRange {
+		fibResult.RequestedRange = originalParam
+	}
+
+	return fibResult
 }
 
 // fibonacciRecursive is the actual recursive implementation
@@ -153,34 +168,43 @@ func fibonacciRecursive(n int) int {
 
 // PrimeResult holds the result of prime generation including timing
 type PrimeResult struct {
-	Count      int     `json:"count"`
-	LastPrime  int     `json:"last_prime"`
-	DurationUs int64   `json:"duration_us"`
-	DurationMs float64 `json:"duration_ms"`
+	Count          int     `json:"count"`
+	RequestedRange string  `json:"requested_range,omitempty"`
+	LastPrime      int     `json:"last_prime"`
+	DurationUs     int64   `json:"duration_us"`
+	DurationMs     float64 `json:"duration_ms"`
 }
 
 // generatePrimes generates the first n prime numbers and returns timing information.
-func generatePrimes(n int) PrimeResult {
+func generatePrimes(n int, originalParam string, wasRange bool) PrimeResult {
 	start := time.Now()
 
 	if n <= 0 {
 		duration := time.Since(start)
-		return PrimeResult{
+		result := PrimeResult{
 			Count:      0,
 			LastPrime:  0,
 			DurationUs: duration.Nanoseconds() / 1000,
 			DurationMs: float64(duration.Nanoseconds()) / 1000000.0,
 		}
+		if wasRange {
+			result.RequestedRange = originalParam
+		}
+		return result
 	}
 
 	if n == 1 {
 		duration := time.Since(start)
-		return PrimeResult{
+		result := PrimeResult{
 			Count:      1,
 			LastPrime:  2,
 			DurationUs: duration.Nanoseconds() / 1000,
 			DurationMs: float64(duration.Nanoseconds()) / 1000000.0,
 		}
+		if wasRange {
+			result.RequestedRange = originalParam
+		}
+		return result
 	}
 
 	// Keep track of primes found so far for trial division, but only store what we need
@@ -207,30 +231,31 @@ func generatePrimes(n int) PrimeResult {
 	}
 
 	duration := time.Since(start)
-	return PrimeResult{
+	result := PrimeResult{
 		Count:      count,
 		LastPrime:  lastPrime,
 		DurationUs: duration.Nanoseconds() / 1000,
 		DurationMs: float64(duration.Nanoseconds()) / 1000000.0,
 	}
+	if wasRange {
+		result.RequestedRange = originalParam
+	}
+	return result
 }
 
-// getFibonacci handles GET requests to calculate the nth Fibonacci number.
+// getFibonacci handles GET requests to calculate the nth Fibonacci number or a random position within a range.
 // Deprecated: Use getPrimes() for more predictable CPU load testing.
 func getFibonacci(c *gin.Context) {
 	metrics := startRequestMetrics()
 
 	f := c.Param("f")
-	num, err := strconv.Atoi(f)
+	size, wasRange, err := parseFibonacciSize(f)
 	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("f: %v", err)})
 		return
 	}
-	if num < 0 || num > 45 {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "f: number out of range (0-45)"})
-		return
-	}
-	result := fibonacci(num)
+
+	result := fibonacci(size, f, wasRange)
 	metrics.finish()
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"data":            result,
@@ -238,21 +263,18 @@ func getFibonacci(c *gin.Context) {
 	})
 }
 
-// getPrimes handles GET requests to generate the first n prime numbers.
+// getPrimes handles GET requests to generate the first n prime numbers or a random count within a range.
 func getPrimes(c *gin.Context) {
 	metrics := startRequestMetrics()
 
 	p := c.Param("p")
-	num, err := strconv.Atoi(p)
+	size, wasRange, err := parsePrimeSize(p)
 	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("p: %v", err)})
 		return
 	}
-	if num < 0 || num > 10000 {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "p: number out of range (0-10000)"})
-		return
-	}
-	result := generatePrimes(num)
+
+	result := generatePrimes(size, p, wasRange)
 	metrics.finish()
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"data":            result,
@@ -349,6 +371,144 @@ func parseHexSize(param string) (int, bool, error) {
 	return size, false, nil
 }
 
+// parseMemorySize parses a memory size parameter that can be either a single value or a range (e.g., "1000" or "1000..5000")
+func parseMemorySize(param string) (int, bool, error) {
+	if strings.Contains(param, "..") {
+		parts := strings.Split(param, "..")
+		if len(parts) != 2 {
+			return 0, false, fmt.Errorf("invalid range format, use min..max")
+		}
+
+		min, err := strconv.Atoi(strings.TrimSpace(parts[0]))
+		if err != nil {
+			return 0, false, fmt.Errorf("invalid minimum value: %v", err)
+		}
+
+		max, err := strconv.Atoi(strings.TrimSpace(parts[1]))
+		if err != nil {
+			return 0, false, fmt.Errorf("invalid maximum value: %v", err)
+		}
+
+		if min < 0 || max < 0 {
+			return 0, false, fmt.Errorf("values must be non-negative")
+		}
+
+		if min > max {
+			return 0, false, fmt.Errorf("minimum value cannot be greater than maximum")
+		}
+
+		if min > 1000000 || max > 1000000 {
+			return 0, false, fmt.Errorf("values must be within range (0-1000000)")
+		}
+
+		actualSize := min + rand.Intn(max-min+1)
+		return actualSize, true, nil
+	}
+
+	size, err := strconv.Atoi(param)
+	if err != nil {
+		return 0, false, fmt.Errorf("invalid number: %v", err)
+	}
+
+	if size < 0 || size > 1000000 {
+		return 0, false, fmt.Errorf("number out of range (0-1000000)")
+	}
+
+	return size, false, nil
+}
+
+// parsePrimeSize parses a prime count parameter that can be either a single value or a range (e.g., "100" or "100..1000")
+func parsePrimeSize(param string) (int, bool, error) {
+	if strings.Contains(param, "..") {
+		parts := strings.Split(param, "..")
+		if len(parts) != 2 {
+			return 0, false, fmt.Errorf("invalid range format, use min..max")
+		}
+
+		min, err := strconv.Atoi(strings.TrimSpace(parts[0]))
+		if err != nil {
+			return 0, false, fmt.Errorf("invalid minimum value: %v", err)
+		}
+
+		max, err := strconv.Atoi(strings.TrimSpace(parts[1]))
+		if err != nil {
+			return 0, false, fmt.Errorf("invalid maximum value: %v", err)
+		}
+
+		if min < 0 || max < 0 {
+			return 0, false, fmt.Errorf("values must be non-negative")
+		}
+
+		if min > max {
+			return 0, false, fmt.Errorf("minimum value cannot be greater than maximum")
+		}
+
+		if min > 10000 || max > 10000 {
+			return 0, false, fmt.Errorf("values must be within range (0-10000)")
+		}
+
+		actualSize := min + rand.Intn(max-min+1)
+		return actualSize, true, nil
+	}
+
+	size, err := strconv.Atoi(param)
+	if err != nil {
+		return 0, false, fmt.Errorf("invalid number: %v", err)
+	}
+
+	if size < 0 || size > 10000 {
+		return 0, false, fmt.Errorf("number out of range (0-10000)")
+	}
+
+	return size, false, nil
+}
+
+// parseFibonacciSize parses a fibonacci position parameter that can be either a single value or a range (e.g., "30" or "25..35")
+func parseFibonacciSize(param string) (int, bool, error) {
+	if strings.Contains(param, "..") {
+		parts := strings.Split(param, "..")
+		if len(parts) != 2 {
+			return 0, false, fmt.Errorf("invalid range format, use min..max")
+		}
+
+		min, err := strconv.Atoi(strings.TrimSpace(parts[0]))
+		if err != nil {
+			return 0, false, fmt.Errorf("invalid minimum value: %v", err)
+		}
+
+		max, err := strconv.Atoi(strings.TrimSpace(parts[1]))
+		if err != nil {
+			return 0, false, fmt.Errorf("invalid maximum value: %v", err)
+		}
+
+		if min < 0 || max < 0 {
+			return 0, false, fmt.Errorf("values must be non-negative")
+		}
+
+		if min > max {
+			return 0, false, fmt.Errorf("minimum value cannot be greater than maximum")
+		}
+
+		if min > 45 || max > 45 {
+			return 0, false, fmt.Errorf("values must be within range (0-45)")
+		}
+
+		actualSize := min + rand.Intn(max-min+1)
+		return actualSize, true, nil
+	}
+
+	size, err := strconv.Atoi(param)
+	if err != nil {
+		return 0, false, fmt.Errorf("invalid number: %v", err)
+	}
+
+	if size < 0 || size > 45 {
+		return 0, false, fmt.Errorf("number out of range (0-45)")
+	}
+
+	return size, false, nil
+}
+
 // getHexString handles GET requests to generate a hex string of n kilobytes or a random size within a range.
 func getHexString(c *gin.Context) {
 	metrics := startRequestMetrics()
@@ -395,7 +555,7 @@ func getFibonacciHex(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-10000)"})
 		return
 	}
-	fResult := fibonacci(fNum)
+	fResult := fibonacci(fNum, strconv.Itoa(fNum), false)
 	hResult, err := createHexString(hNum, strconv.Itoa(hNum), false)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
@@ -432,7 +592,7 @@ func getPrimesHex(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-10000)"})
 		return
 	}
-	pResult := generatePrimes(pNum)
+	pResult := generatePrimes(pNum, strconv.Itoa(pNum), false)
 	hResult, err := createHexString(hNum, strconv.Itoa(hNum), false)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
@@ -488,7 +648,7 @@ func fibonacciHexMemory(c *gin.Context) {
 		return
 	}
 
-	fResult := fibonacci(fNum)
+	fResult := fibonacci(fNum, strconv.Itoa(fNum), false)
 	hResult, err := createHexString(hNum, strconv.Itoa(hNum), false)
 
 	if err != nil {
@@ -496,7 +656,7 @@ func fibonacciHexMemory(c *gin.Context) {
 		return
 	}
 
-	mResult, err := allocateMemory(mNum)
+	mResult, err := allocateMemory(mNum, strconv.Itoa(mNum), false)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "memory allocation failed"})
 		return
@@ -552,7 +712,7 @@ func primesHexMemory(c *gin.Context) {
 		return
 	}
 
-	pResult := generatePrimes(pNum)
+	pResult := generatePrimes(pNum, strconv.Itoa(pNum), false)
 	hResult, err := createHexString(hNum, strconv.Itoa(hNum), false)
 
 	if err != nil {
@@ -560,7 +720,7 @@ func primesHexMemory(c *gin.Context) {
 		return
 	}
 
-	mResult, err := allocateMemory(mNum)
+	mResult, err := allocateMemory(mNum, strconv.Itoa(mNum), false)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "memory allocation failed"})
 		return
@@ -605,17 +765,19 @@ func getIndex(c *gin.Context) {
         <div class="endpoint">
             <span class="method">GET</span> <strong>/primes/{p}</strong> - Generate Prime Numbers (Recommended)
             <div class="example">
-                Example: <a href="/primes/100">/primes/100</a> - Generate first 100 prime numbers
+                Example: <a href="/primes/100">/primes/100</a> - Generate first 100 prime numbers<br>
+                Range: <a href="/primes/50..200">/primes/50..200</a> - Generate random count between 50-200 primes
             </div>
-            <div class="limits">Limits: p = 0-10,000 | Best for predictable CPU load testing</div>
+            <div class="limits">Limits: p = 0-10,000 or range (e.g., 50..200) | Best for predictable CPU load testing</div>
         </div>
 
         <div class="endpoint">
             <span class="method">GET</span> <strong>/memory/{m}</strong> - Allocate Memory
             <div class="example">
-                Example: <a href="/memory/1024">/memory/1024</a> - Allocate 1MB (1024 KB) of memory
+                Example: <a href="/memory/1024">/memory/1024</a> - Allocate 1MB (1024 KB) of memory<br>
+                Range: <a href="/memory/500..2000">/memory/500..2000</a> - Allocate random size between 500KB-2MB
             </div>
-            <div class="limits">Limits: m = 0-1,000,000 KB | Memory is allocated then freed naturally</div>
+            <div class="limits">Limits: m = 0-1,000,000 KB or range (e.g., 500..2000) | Memory is allocated then freed naturally</div>
         </div>
 
         <div class="endpoint">
@@ -630,9 +792,10 @@ func getIndex(c *gin.Context) {
         <div class="endpoint deprecated">
             <span class="method">GET</span> <strong>/fibonacci/{f}</strong> - Fibonacci Calculation (Deprecated)
             <div class="example">
-                Example: <a href="/fibonacci/30">/fibonacci/30</a> - Calculate 30th Fibonacci number
+                Example: <a href="/fibonacci/30">/fibonacci/30</a> - Calculate 30th Fibonacci number<br>
+                Range: <a href="/fibonacci/25..35">/fibonacci/25..35</a> - Calculate random position between 25-35
             </div>
-            <div class="limits">Limits: f = 0-45 | ⚠️ Deprecated: Use /primes for predictable CPU testing</div>
+            <div class="limits">Limits: f = 0-45 or range (e.g., 25..35) | ⚠️ Deprecated: Use /primes for predictable CPU testing</div>
         </div>
 
         <h2>🔄 Combined Operations</h2>
@@ -682,7 +845,9 @@ func getIndex(c *gin.Context) {
         <div class="example">
             Light CPU: <a href="/primes/100">/primes/100</a><br>
             Heavy CPU: <a href="/primes/5000">/primes/5000</a><br>
+            Variable CPU: <a href="/primes/100..1000">/primes/100..1000</a><br>
             Memory Test: <a href="/memory/100000">/memory/100000</a><br>
+            Variable Memory: <a href="/memory/50000..200000">/memory/50000..200000</a><br>
             Bandwidth Test: <a href="/hex/1000">/hex/1000</a><br>
             Variable Size Test: <a href="/hex/500..2000">/hex/500..2000</a><br>
             Combined Load: <a href="/primes/hex/memory/2000/500/50000">/primes/hex/memory/2000/500/50000</a>

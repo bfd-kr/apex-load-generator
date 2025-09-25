@@ -42,11 +42,15 @@ All endpoints return JSON responses with both `data` (the operation results) and
 ```bash
 GET /primes/{p}
 ```
-Generate the first `p` prime numbers (recommended for CPU load testing).
+Generate the first `p` prime numbers or a random count within a range (recommended for CPU load testing).
 
-**Example**:
+**Examples**:
 ```bash
+# Fixed count
 curl http://localhost:8080/primes/1000
+
+# Random count within range
+curl http://localhost:8080/primes/500..1500
 ```
 
 **Response**:
@@ -73,11 +77,15 @@ curl http://localhost:8080/primes/1000
 ```bash
 GET /memory/{m}
 ```
-Allocate `m` kilobytes of memory temporarily.
+Allocate `m` kilobytes of memory temporarily or a random size within a range.
 
-**Example**:
+**Examples**:
 ```bash
+# Fixed size
 curl http://localhost:8080/memory/1024
+
+# Random size within range
+curl http://localhost:8080/memory/500..2000
 ```
 
 #### Hex String Generation
@@ -99,7 +107,16 @@ curl http://localhost:8080/hex/100..500
 ```bash
 GET /fibonacci/{f}
 ```
-Calculate the `f`th Fibonacci number. **Note**: Deprecated due to unpredictable exponential scaling. Use `/primes/{p}` instead.
+Calculate the `f`th Fibonacci number or a random position within a range. **Note**: Deprecated due to unpredictable exponential scaling. Use `/primes/{p}` instead.
+
+**Examples**:
+```bash
+# Fixed position
+curl http://localhost:8080/fibonacci/30
+
+# Random position within range
+curl http://localhost:8080/fibonacci/25..35
+```
 
 ### Combined Operations
 
@@ -131,10 +148,10 @@ To prevent resource exhaustion, all endpoints enforce the following limits:
 
 | Parameter | Endpoint | Range | Description |
 |-----------|----------|-------|-------------|
-| `p` | Primes | 0-10,000 | Number of prime numbers |
-| `f` | Fibonacci | 0-45 | Fibonacci sequence position |
+| `p` | Primes | 0-10,000 or range | Number of prime numbers or range (e.g., 100..1000) |
+| `f` | Fibonacci | 0-45 or range | Fibonacci sequence position or range (e.g., 25..35) |
 | `h` | Hex | 0-10,000 KB or range | Hex string size or range (e.g., 100..500) |
-| `m` | Memory | 0-1,000,000 KB | Memory allocation size |
+| `m` | Memory | 0-1,000,000 KB or range | Memory allocation size or range (e.g., 500..2000) |
 
 ## Request Metrics
 
@@ -163,14 +180,19 @@ curl http://localhost:8080/primes/100
 curl http://localhost:8080/primes/5000
 ```
 
+### Variable CPU Load
+```bash
+curl http://localhost:8080/primes/1000..5000
+```
+
 ### Memory Pressure Test
 ```bash
 curl http://localhost:8080/memory/100000
 ```
 
-### Combined Load Test
+### Variable Memory Test
 ```bash
-curl http://localhost:8080/primes/hex/memory/2000/500/50000
+curl http://localhost:8080/memory/50000..200000
 ```
 
 ### Bandwidth Test
@@ -181,6 +203,11 @@ curl http://localhost:8080/hex/1000
 ### Variable Size Test
 ```bash
 curl http://localhost:8080/hex/500..2000
+```
+
+### Combined Load Test
+```bash
+curl http://localhost:8080/primes/hex/memory/2000/500/50000
 ```
 
 ## Error Handling
