@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -261,15 +262,16 @@ func getPrimes(c *gin.Context) {
 
 // HexResult holds the result of hex string generation including timing
 type HexResult struct {
-	SizeKB     int     `json:"size_kb"`
-	Length     int     `json:"length"`
-	HexString  string  `json:"hex_string"`
-	DurationUs int64   `json:"duration_us"`
-	DurationMs float64 `json:"duration_ms"`
+	SizeKB         int     `json:"size_kb"`
+	RequestedRange string  `json:"requested_range,omitempty"`
+	Length         int     `json:"length"`
+	HexString      string  `json:"hex_string"`
+	DurationUs     int64   `json:"duration_us"`
+	DurationMs     float64 `json:"duration_ms"`
 }
 
 // createHexString generates a hex string of n kilobytes.
-func createHexString(n int) (HexResult, error) {
+func createHexString(n int, originalParam string, wasRange bool) (HexResult, error) {
 	start := time.Now()
 
 	hexChars := "0123456789abcdef"
@@ -280,30 +282,85 @@ func createHexString(n int) (HexResult, error) {
 
 	hexString := string(result)
 	duration := time.Since(start)
-	return HexResult{
+
+	hexResult := HexResult{
 		SizeKB:     n,
 		Length:     len(hexString),
 		HexString:  hexString,
 		DurationUs: duration.Nanoseconds() / 1000,
 		DurationMs: float64(duration.Nanoseconds()) / 1000000.0,
-	}, nil
+	}
+
+	// Only include requested_range if it was a range
+	if wasRange {
+		hexResult.RequestedRange = originalParam
+	}
+
+	return hexResult, nil
 }
 
-// getHexString handles GET requests to generate a hex string of n kilobytes.
+// parseHexSize parses a hex size parameter that can be either a single value or a range (e.g., "100" or "100-500")
+// Returns the actual size to use and whether it was a range
+func parseHexSize(param string) (int, bool, error) {
+	// Check if it's a range (contains dash)
+	if strings.Contains(param, "-") {
+		parts := strings.Split(param, "-")
+		if len(parts) != 2 {
+			return 0, false, fmt.Errorf("invalid range format, use min-max")
+		}
+
+		min, err := strconv.Atoi(strings.TrimSpace(parts[0]))
+		if err != nil {
+			return 0, false, fmt.Errorf("invalid minimum value: %v", err)
+		}
+
+		max, err := strconv.Atoi(strings.TrimSpace(parts[1]))
+		if err != nil {
+			return 0, false, fmt.Errorf("invalid maximum value: %v", err)
+		}
+
+		if min < 0 || max < 0 {
+			return 0, false, fmt.Errorf("values must be non-negative")
+		}
+
+		if min > max {
+			return 0, false, fmt.Errorf("minimum value cannot be greater than maximum")
+		}
+
+		if min > 10000 || max > 10000 {
+			return 0, false, fmt.Errorf("values must be within range (0-10000)")
+		}
+
+		// Generate random value within range (inclusive)
+		actualSize := min + rand.Intn(max-min+1)
+		return actualSize, true, nil
+	}
+
+	// Single value
+	size, err := strconv.Atoi(param)
+	if err != nil {
+		return 0, false, fmt.Errorf("invalid number: %v", err)
+	}
+
+	if size < 0 || size > 10000 {
+		return 0, false, fmt.Errorf("number out of range (0-10000)")
+	}
+
+	return size, false, nil
+}
+
+// getHexString handles GET requests to generate a hex string of n kilobytes or a random size within a range.
 func getHexString(c *gin.Context) {
 	metrics := startRequestMetrics()
 
 	h := c.Param("h")
-	num, err := strconv.Atoi(h)
+	size, wasRange, err := parseHexSize(h)
 	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("h: %v", err)})
 		return
 	}
-	if num < 0 || num > 10000 {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-10000)"})
-		return
-	}
-	result, err := createHexString(num)
+
+	result, err := createHexString(size, h, wasRange)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
 		return
@@ -339,7 +396,7 @@ func getFibonacciHex(c *gin.Context) {
 		return
 	}
 	fResult := fibonacci(fNum)
-	hResult, err := createHexString(hNum)
+	hResult, err := createHexString(hNum, strconv.Itoa(hNum), false)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
 		return
@@ -376,7 +433,7 @@ func getPrimesHex(c *gin.Context) {
 		return
 	}
 	pResult := generatePrimes(pNum)
-	hResult, err := createHexString(hNum)
+	hResult, err := createHexString(hNum, strconv.Itoa(hNum), false)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
 		return
@@ -432,7 +489,7 @@ func fibonacciHexMemory(c *gin.Context) {
 	}
 
 	fResult := fibonacci(fNum)
-	hResult, err := createHexString(hNum)
+	hResult, err := createHexString(hNum, strconv.Itoa(hNum), false)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
@@ -496,7 +553,7 @@ func primesHexMemory(c *gin.Context) {
 	}
 
 	pResult := generatePrimes(pNum)
-	hResult, err := createHexString(hNum)
+	hResult, err := createHexString(hNum, strconv.Itoa(hNum), false)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not generate hex string"})
@@ -564,9 +621,10 @@ func getIndex(c *gin.Context) {
         <div class="endpoint">
             <span class="method">GET</span> <strong>/hex/{h}</strong> - Generate Hex String
             <div class="example">
-                Example: <a href="/hex/10">/hex/10</a> - Generate 10KB of hex data
+                Example: <a href="/hex/10">/hex/10</a> - Generate 10KB of hex data<br>
+                Range: <a href="/hex/100-500">/hex/100-500</a> - Generate random size between 100-500KB
             </div>
-            <div class="limits">Limits: h = 0-10,000 KB | Returns full hex data for bandwidth testing</div>
+            <div class="limits">Limits: h = 0-10,000 KB or range (e.g., 100-500) | Returns full hex data for bandwidth testing</div>
         </div>
 
         <div class="endpoint deprecated">
@@ -626,6 +684,7 @@ func getIndex(c *gin.Context) {
             Heavy CPU: <a href="/primes/5000">/primes/5000</a><br>
             Memory Test: <a href="/memory/100000">/memory/100000</a><br>
             Bandwidth Test: <a href="/hex/1000">/hex/1000</a><br>
+            Variable Size Test: <a href="/hex/500-2000">/hex/500-2000</a><br>
             Combined Load: <a href="/primes/hex/memory/2000/500/50000">/primes/hex/memory/2000/500/50000</a>
         </div>
 
