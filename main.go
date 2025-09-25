@@ -64,9 +64,58 @@ type MemoryResult struct {
 }
 
 // allocateMemory creates a byte slice of size mb and ensures allocation.
-func allocateMemory(k int, originalParam string, wasRange bool) (MemoryResult, error) {
+// Accepts either a single value (e.g., "1024") or a range (e.g., "500..2000")
+func allocateMemory(param string) (MemoryResult, error) {
 	start := time.Now()
 	var err error
+	var k int
+	var wasRange bool
+
+	// Parse the parameter (single value or range)
+	if strings.Contains(param, "..") {
+		parts := strings.Split(param, "..")
+		if len(parts) != 2 {
+			return MemoryResult{}, fmt.Errorf("invalid range format, use min..max")
+		}
+
+		min, err := strconv.Atoi(strings.TrimSpace(parts[0]))
+		if err != nil {
+			return MemoryResult{}, fmt.Errorf("invalid minimum value: %v", err)
+		}
+
+		max, err := strconv.Atoi(strings.TrimSpace(parts[1]))
+		if err != nil {
+			return MemoryResult{}, fmt.Errorf("invalid maximum value: %v", err)
+		}
+
+		if min < 0 || max < 0 {
+			return MemoryResult{}, fmt.Errorf("values must be non-negative")
+		}
+
+		if min > max {
+			return MemoryResult{}, fmt.Errorf("minimum value cannot be greater than maximum")
+		}
+
+		if min > 1000000 || max > 1000000 {
+			return MemoryResult{}, fmt.Errorf("values must be within range (0-1000000)")
+		}
+
+		k = min + rand.Intn(max-min+1)
+		wasRange = true
+	} else {
+		// Single value
+		size, err := strconv.Atoi(param)
+		if err != nil {
+			return MemoryResult{}, fmt.Errorf("invalid number: %v", err)
+		}
+
+		if size < 0 || size > 1000000 {
+			return MemoryResult{}, fmt.Errorf("number out of range (0-1000000)")
+		}
+
+		k = size
+		wasRange = false
+	}
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -91,7 +140,7 @@ func allocateMemory(k int, originalParam string, wasRange bool) (MemoryResult, e
 
 	// Only include requested_range if it was a range
 	if wasRange {
-		memoryResult.RequestedRange = originalParam
+		memoryResult.RequestedRange = param
 	}
 
 	return memoryResult, err
@@ -102,15 +151,9 @@ func getMemory(c *gin.Context) {
 	metrics := startRequestMetrics()
 
 	m := c.Param("m")
-	size, wasRange, err := parseMemorySize(m)
+	result, err := allocateMemory(m)
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("m: %v", err)})
-		return
-	}
-
-	result, err := allocateMemory(size, m, wasRange)
-	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "memory allocation failed"})
 		return
 	}
 	metrics.finish()
@@ -371,51 +414,6 @@ func parseHexSize(param string) (int, bool, error) {
 	return size, false, nil
 }
 
-// parseMemorySize parses a memory size parameter that can be either a single value or a range (e.g., "1000" or "1000..5000")
-func parseMemorySize(param string) (int, bool, error) {
-	if strings.Contains(param, "..") {
-		parts := strings.Split(param, "..")
-		if len(parts) != 2 {
-			return 0, false, fmt.Errorf("invalid range format, use min..max")
-		}
-
-		min, err := strconv.Atoi(strings.TrimSpace(parts[0]))
-		if err != nil {
-			return 0, false, fmt.Errorf("invalid minimum value: %v", err)
-		}
-
-		max, err := strconv.Atoi(strings.TrimSpace(parts[1]))
-		if err != nil {
-			return 0, false, fmt.Errorf("invalid maximum value: %v", err)
-		}
-
-		if min < 0 || max < 0 {
-			return 0, false, fmt.Errorf("values must be non-negative")
-		}
-
-		if min > max {
-			return 0, false, fmt.Errorf("minimum value cannot be greater than maximum")
-		}
-
-		if min > 1000000 || max > 1000000 {
-			return 0, false, fmt.Errorf("values must be within range (0-1000000)")
-		}
-
-		actualSize := min + rand.Intn(max-min+1)
-		return actualSize, true, nil
-	}
-
-	size, err := strconv.Atoi(param)
-	if err != nil {
-		return 0, false, fmt.Errorf("invalid number: %v", err)
-	}
-
-	if size < 0 || size > 1000000 {
-		return 0, false, fmt.Errorf("number out of range (0-1000000)")
-	}
-
-	return size, false, nil
-}
 
 // parsePrimeSize parses a prime count parameter that can be either a single value or a range (e.g., "100" or "100..1000")
 func parsePrimeSize(param string) (int, bool, error) {
@@ -656,7 +654,7 @@ func fibonacciHexMemory(c *gin.Context) {
 		return
 	}
 
-	mResult, err := allocateMemory(mNum, strconv.Itoa(mNum), false)
+	mResult, err := allocateMemory(strconv.Itoa(mNum))
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "memory allocation failed"})
 		return
@@ -720,7 +718,7 @@ func primesHexMemory(c *gin.Context) {
 		return
 	}
 
-	mResult, err := allocateMemory(mNum, strconv.Itoa(mNum), false)
+	mResult, err := allocateMemory(strconv.Itoa(mNum))
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "memory allocation failed"})
 		return
