@@ -663,12 +663,51 @@ func TestGetIndex(t *testing.T) {
 		t.Errorf("Expected status 200, got %d", w.Code)
 	}
 
-	if !strings.Contains(w.Body.String(), "Apex Load Generator API") {
+	body := w.Body.String()
+
+	if !strings.Contains(body, "Apex Load Generator API") {
 		t.Error("Expected homepage to contain 'Apex Load Generator API'")
 	}
 
 	if !strings.Contains(w.Header().Get("Content-Type"), "text/html") {
 		t.Error("Expected Content-Type to be text/html")
+	}
+
+	// Test that range examples are present for single endpoints
+	rangeExamples := []string{
+		"/primes/50..200",
+		"/memory/500..2000",
+		"/hex/100..500",
+		"/fibonacci/25..35",
+	}
+
+	for _, example := range rangeExamples {
+		if !strings.Contains(body, example) {
+			t.Errorf("Expected homepage to contain range example: %s", example)
+		}
+	}
+
+	// Test that range examples are present for combined endpoints
+	combinedRangeExamples := []string{
+		"/primes/hex/100..1000/25..100",
+		"/primes/hex/memory/500..2000/50..200/1000..5000",
+		"/fibonacci/hex/20..30/25..100",
+		"/fibonacci/hex/memory/15..25/25..100/500..2000",
+	}
+
+	for _, example := range combinedRangeExamples {
+		if !strings.Contains(body, example) {
+			t.Errorf("Expected homepage to contain combined range example: %s", example)
+		}
+	}
+
+	// Test that both parameters support ranges text is present
+	if !strings.Contains(body, "Both parameters support ranges") {
+		t.Error("Expected homepage to mention that both parameters support ranges")
+	}
+
+	if !strings.Contains(body, "All parameters support ranges") {
+		t.Error("Expected homepage to mention that all parameters support ranges")
 	}
 }
 
