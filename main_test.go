@@ -1,10 +1,15 @@
 package main
 
 import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 // TestParseIntOrRange tests the abstracted range parsing function
@@ -628,5 +633,640 @@ func BenchmarkGeneratePrimes(b *testing.B) {
 func BenchmarkCreateHexString(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		createHexString("1")
+	}
+}
+
+// setupRouter creates a test router with all routes
+func setupRouter() *gin.Engine {
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.GET("/", getIndex)
+	router.GET("/fibonacci/:f", getFibonacci)
+	router.GET("/primes/:p", getPrimes)
+	router.GET("/hex/:h", getHexString)
+	router.GET("/memory/:m", getMemory)
+	router.GET("/fibonacci/hex/:f/:h", getFibonacciHex)
+	router.GET("/primes/hex/:p/:h", getPrimesHex)
+	router.GET("/fibonacci/hex/memory/:f/:h/:m", fibonacciHexMemory)
+	router.GET("/primes/hex/memory/:p/:h/:m", primesHexMemory)
+	return router
+}
+
+// TestGetIndex tests the HTML homepage endpoint
+func TestGetIndex(t *testing.T) {
+	router := setupRouter()
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/", nil)
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+
+	if !strings.Contains(w.Body.String(), "Apex Load Generator API") {
+		t.Error("Expected homepage to contain 'Apex Load Generator API'")
+	}
+
+	if !strings.Contains(w.Header().Get("Content-Type"), "text/html") {
+		t.Error("Expected Content-Type to be text/html")
+	}
+}
+
+// TestGetMemory tests the memory allocation endpoint
+func TestGetMemory(t *testing.T) {
+	router := setupRouter()
+
+	tests := []struct {
+		name           string
+		param          string
+		expectedStatus int
+		expectError    bool
+	}{
+		{
+			name:           "Valid memory allocation",
+			param:          "10",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+		},
+		{
+			name:           "Valid memory range",
+			param:          "5..15",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+		},
+		{
+			name:           "Invalid parameter",
+			param:          "invalid",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+		{
+			name:           "Exceeds maximum",
+			param:          "2000000",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("GET", "/memory/"+tt.param, nil)
+			router.ServeHTTP(w, req)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("Expected status %d, got %d", tt.expectedStatus, w.Code)
+			}
+
+			if !tt.expectError {
+				// Parse successful response
+				var response map[string]interface{}
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				if err != nil {
+					t.Errorf("Failed to parse JSON response: %v", err)
+				}
+
+				// Verify response structure
+				if _, ok := response["data"]; !ok {
+					t.Error("Expected 'data' field in response")
+				}
+				if _, ok := response["request_metrics"]; !ok {
+					t.Error("Expected 'request_metrics' field in response")
+				}
+			}
+		})
+	}
+}
+
+// TestGetFibonacci tests the Fibonacci calculation endpoint
+func TestGetFibonacci(t *testing.T) {
+	router := setupRouter()
+
+	tests := []struct {
+		name           string
+		param          string
+		expectedStatus int
+		expectError    bool
+	}{
+		{
+			name:           "Valid Fibonacci calculation",
+			param:          "5",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+		},
+		{
+			name:           "Valid Fibonacci range",
+			param:          "3..7",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+		},
+		{
+			name:           "Invalid parameter",
+			param:          "invalid",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+		{
+			name:           "Exceeds maximum",
+			param:          "50",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("GET", "/fibonacci/"+tt.param, nil)
+			router.ServeHTTP(w, req)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("Expected status %d, got %d", tt.expectedStatus, w.Code)
+			}
+
+			if !tt.expectError {
+				var response map[string]interface{}
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				if err != nil {
+					t.Errorf("Failed to parse JSON response: %v", err)
+				}
+
+				if _, ok := response["data"]; !ok {
+					t.Error("Expected 'data' field in response")
+				}
+				if _, ok := response["request_metrics"]; !ok {
+					t.Error("Expected 'request_metrics' field in response")
+				}
+			}
+		})
+	}
+}
+
+// TestGetPrimes tests the prime generation endpoint
+func TestGetPrimes(t *testing.T) {
+	router := setupRouter()
+
+	tests := []struct {
+		name           string
+		param          string
+		expectedStatus int
+		expectError    bool
+	}{
+		{
+			name:           "Valid prime generation",
+			param:          "5",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+		},
+		{
+			name:           "Valid prime range",
+			param:          "3..7",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+		},
+		{
+			name:           "Invalid parameter",
+			param:          "invalid",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+		{
+			name:           "Exceeds maximum",
+			param:          "50000",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("GET", "/primes/"+tt.param, nil)
+			router.ServeHTTP(w, req)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("Expected status %d, got %d", tt.expectedStatus, w.Code)
+			}
+
+			if !tt.expectError {
+				var response map[string]interface{}
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				if err != nil {
+					t.Errorf("Failed to parse JSON response: %v", err)
+				}
+
+				if _, ok := response["data"]; !ok {
+					t.Error("Expected 'data' field in response")
+				}
+				if _, ok := response["request_metrics"]; !ok {
+					t.Error("Expected 'request_metrics' field in response")
+				}
+			}
+		})
+	}
+}
+
+// TestGetHexString tests the hex string generation endpoint
+func TestGetHexString(t *testing.T) {
+	router := setupRouter()
+
+	tests := []struct {
+		name           string
+		param          string
+		expectedStatus int
+		expectError    bool
+	}{
+		{
+			name:           "Valid hex generation",
+			param:          "1",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+		},
+		{
+			name:           "Valid hex range",
+			param:          "1..3",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+		},
+		{
+			name:           "Invalid parameter",
+			param:          "invalid",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+		{
+			name:           "Exceeds maximum",
+			param:          "50000",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("GET", "/hex/"+tt.param, nil)
+			router.ServeHTTP(w, req)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("Expected status %d, got %d", tt.expectedStatus, w.Code)
+			}
+
+			if !tt.expectError {
+				var response map[string]interface{}
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				if err != nil {
+					t.Errorf("Failed to parse JSON response: %v", err)
+				}
+
+				if _, ok := response["data"]; !ok {
+					t.Error("Expected 'data' field in response")
+				}
+				if _, ok := response["request_metrics"]; !ok {
+					t.Error("Expected 'request_metrics' field in response")
+				}
+			}
+		})
+	}
+}
+
+// TestGetFibonacciHex tests the combined Fibonacci + hex endpoint
+func TestGetFibonacciHex(t *testing.T) {
+	router := setupRouter()
+
+	tests := []struct {
+		name           string
+		fibParam       string
+		hexParam       string
+		expectedStatus int
+		expectError    bool
+	}{
+		{
+			name:           "Valid combined operation",
+			fibParam:       "5",
+			hexParam:       "1",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+		},
+		{
+			name:           "Valid with ranges",
+			fibParam:       "3..7",
+			hexParam:       "1..3",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+		},
+		{
+			name:           "Invalid fibonacci parameter",
+			fibParam:       "invalid",
+			hexParam:       "1",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+		{
+			name:           "Invalid hex parameter",
+			fibParam:       "5",
+			hexParam:       "invalid",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("GET", "/fibonacci/hex/"+tt.fibParam+"/"+tt.hexParam, nil)
+			router.ServeHTTP(w, req)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("Expected status %d, got %d", tt.expectedStatus, w.Code)
+			}
+
+			if !tt.expectError {
+				var response map[string]interface{}
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				if err != nil {
+					t.Errorf("Failed to parse JSON response: %v", err)
+				}
+
+				data, ok := response["data"].(map[string]interface{})
+				if !ok {
+					t.Error("Expected 'data' field to be an object")
+				}
+
+				if _, ok := data["fibonacci_result"]; !ok {
+					t.Error("Expected 'fibonacci_result' in data")
+				}
+				if _, ok := data["hex_result"]; !ok {
+					t.Error("Expected 'hex_result' in data")
+				}
+			}
+		})
+	}
+}
+
+// TestGetPrimesHex tests the combined primes + hex endpoint
+func TestGetPrimesHex(t *testing.T) {
+	router := setupRouter()
+
+	tests := []struct {
+		name           string
+		primeParam     string
+		hexParam       string
+		expectedStatus int
+		expectError    bool
+	}{
+		{
+			name:           "Valid combined operation",
+			primeParam:     "5",
+			hexParam:       "1",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+		},
+		{
+			name:           "Valid with ranges",
+			primeParam:     "3..7",
+			hexParam:       "1..3",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+		},
+		{
+			name:           "Invalid prime parameter",
+			primeParam:     "invalid",
+			hexParam:       "1",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+		{
+			name:           "Invalid hex parameter",
+			primeParam:     "5",
+			hexParam:       "invalid",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("GET", "/primes/hex/"+tt.primeParam+"/"+tt.hexParam, nil)
+			router.ServeHTTP(w, req)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("Expected status %d, got %d", tt.expectedStatus, w.Code)
+			}
+
+			if !tt.expectError {
+				var response map[string]interface{}
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				if err != nil {
+					t.Errorf("Failed to parse JSON response: %v", err)
+				}
+
+				data, ok := response["data"].(map[string]interface{})
+				if !ok {
+					t.Error("Expected 'data' field to be an object")
+				}
+
+				if _, ok := data["prime_result"]; !ok {
+					t.Error("Expected 'prime_result' in data")
+				}
+				if _, ok := data["hex_result"]; !ok {
+					t.Error("Expected 'hex_result' in data")
+				}
+			}
+		})
+	}
+}
+
+// TestFibonacciHexMemory tests the triple combined endpoint
+func TestFibonacciHexMemory(t *testing.T) {
+	router := setupRouter()
+
+	tests := []struct {
+		name           string
+		fibParam       string
+		hexParam       string
+		memParam       string
+		expectedStatus int
+		expectError    bool
+	}{
+		{
+			name:           "Valid triple operation",
+			fibParam:       "5",
+			hexParam:       "1",
+			memParam:       "10",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+		},
+		{
+			name:           "Valid with ranges",
+			fibParam:       "3..7",
+			hexParam:       "1..3",
+			memParam:       "5..15",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+		},
+		{
+			name:           "Invalid fibonacci parameter",
+			fibParam:       "invalid",
+			hexParam:       "1",
+			memParam:       "10",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+		{
+			name:           "Invalid memory parameter",
+			fibParam:       "5",
+			hexParam:       "1",
+			memParam:       "invalid",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("GET", "/fibonacci/hex/memory/"+tt.fibParam+"/"+tt.hexParam+"/"+tt.memParam, nil)
+			router.ServeHTTP(w, req)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("Expected status %d, got %d", tt.expectedStatus, w.Code)
+			}
+
+			if !tt.expectError {
+				var response map[string]interface{}
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				if err != nil {
+					t.Errorf("Failed to parse JSON response: %v", err)
+				}
+
+				data, ok := response["data"].(map[string]interface{})
+				if !ok {
+					t.Error("Expected 'data' field to be an object")
+				}
+
+				if _, ok := data["fibonacci_result"]; !ok {
+					t.Error("Expected 'fibonacci_result' in data")
+				}
+				if _, ok := data["hex_result"]; !ok {
+					t.Error("Expected 'hex_result' in data")
+				}
+				if _, ok := data["memory_result"]; !ok {
+					t.Error("Expected 'memory_result' in data")
+				}
+			}
+		})
+	}
+}
+
+// TestPrimesHexMemory tests the triple combined endpoint with primes
+func TestPrimesHexMemory(t *testing.T) {
+	router := setupRouter()
+
+	tests := []struct {
+		name           string
+		primeParam     string
+		hexParam       string
+		memParam       string
+		expectedStatus int
+		expectError    bool
+	}{
+		{
+			name:           "Valid triple operation",
+			primeParam:     "5",
+			hexParam:       "1",
+			memParam:       "10",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+		},
+		{
+			name:           "Valid with ranges",
+			primeParam:     "3..7",
+			hexParam:       "1..3",
+			memParam:       "5..15",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+		},
+		{
+			name:           "Invalid prime parameter",
+			primeParam:     "invalid",
+			hexParam:       "1",
+			memParam:       "10",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+		{
+			name:           "Invalid memory parameter",
+			primeParam:     "5",
+			hexParam:       "1",
+			memParam:       "invalid",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("GET", "/primes/hex/memory/"+tt.primeParam+"/"+tt.hexParam+"/"+tt.memParam, nil)
+			router.ServeHTTP(w, req)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("Expected status %d, got %d", tt.expectedStatus, w.Code)
+			}
+
+			if !tt.expectError {
+				var response map[string]interface{}
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				if err != nil {
+					t.Errorf("Failed to parse JSON response: %v", err)
+				}
+
+				data, ok := response["data"].(map[string]interface{})
+				if !ok {
+					t.Error("Expected 'data' field to be an object")
+				}
+
+				if _, ok := data["prime_result"]; !ok {
+					t.Error("Expected 'prime_result' in data")
+				}
+				if _, ok := data["hex_result"]; !ok {
+					t.Error("Expected 'hex_result' in data")
+				}
+				if _, ok := data["memory_result"]; !ok {
+					t.Error("Expected 'memory_result' in data")
+				}
+			}
+		})
+	}
+}
+
+// TestMainFunction tests that main function can be called without panicking
+func TestMainFunction(t *testing.T) {
+	// We can't easily test the main function directly since it starts a server
+	// But we can test that our router setup doesn't panic
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("Router setup panicked: %v", r)
+		}
+	}()
+
+	// Test router creation (similar to what main does)
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.GET("/", getIndex)
+	router.GET("/fibonacci/:f", getFibonacci)
+	router.GET("/primes/:p", getPrimes)
+	router.GET("/hex/:h", getHexString)
+	router.GET("/memory/:m", getMemory)
+	router.GET("/fibonacci/hex/:f/:h", getFibonacciHex)
+	router.GET("/primes/hex/:p/:h", getPrimesHex)
+	router.GET("/fibonacci/hex/memory/:f/:h/:m", fibonacciHexMemory)
+	router.GET("/primes/hex/memory/:p/:h/:m", primesHexMemory)
+
+	// Verify router was created successfully
+	if router == nil {
+		t.Error("Router creation failed")
 	}
 }
