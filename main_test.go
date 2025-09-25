@@ -551,7 +551,7 @@ func TestFibonacciRecursive(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(string(rune(tt.input)), func(t *testing.T) {
+		t.Run(strconv.Itoa(tt.input), func(t *testing.T) {
 			result := fibonacciRecursive(tt.input)
 			if result != tt.expected {
 				t.Errorf("fibonacciRecursive(%d) = %d, expected %d", tt.input, result, tt.expected)
