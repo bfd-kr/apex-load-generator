@@ -21,6 +21,8 @@ const (
 	MaxPrimes = 10000
 	// MaxHexKB is the maximum hex string size limit in kilobytes
 	MaxHexKB = 10000
+	// PageSize is the memory page size in bytes for memory allocation
+	PageSize = 4096
 )
 
 // RequestMetrics holds request-level performance metrics
@@ -159,7 +161,7 @@ func allocateMemory(param string) (MemoryResult, error) {
 
 	bytes := make([]byte, k*1024)
 	// Touch memory to ensure allocation
-	for i := 0; i < len(bytes); i += 4096 {
+	for i := 0; i < len(bytes); i += PageSize {
 		bytes[i] = 1
 	}
 	// Memory will be freed naturally by GC
@@ -208,7 +210,10 @@ type FibonacciResult struct {
 
 // fibonacci calculates the nth Fibonacci number.
 // Accepts either a single value (e.g., "30") or a range (e.g., "25..35")
+//
 // Deprecated: Use generatePrimes() for more predictable CPU load testing.
+// The fibonacci function has exponential time complexity O(2^n) which makes
+// load testing unpredictable and resource intensive for larger inputs.
 func fibonacci(param string) (FibonacciResult, error) {
 	start := time.Now()
 
@@ -333,7 +338,9 @@ func generatePrimes(param string) (PrimeResult, error) {
 }
 
 // getFibonacci handles GET requests to calculate the nth Fibonacci number or a random position within a range.
+//
 // Deprecated: Use getPrimes() for more predictable CPU load testing.
+// This endpoint uses the fibonacci function which has exponential complexity.
 func getFibonacci(c *gin.Context) {
 	metrics := startRequestMetrics()
 
@@ -411,7 +418,6 @@ func createHexString(param string) (HexResult, error) {
 
 	return hexResult, nil
 }
-
 
 // getHexString handles GET requests to generate a hex string of n kilobytes or a random size within a range.
 func getHexString(c *gin.Context) {
