@@ -2,7 +2,24 @@
 
 set -e
 
+echo "Running tests..."
+go test -v
+if [ $? -ne 0 ]; then
+    echo "❌ Tests failed! Build aborted."
+    exit 1
+fi
+echo "✅ All tests passed!"
+
+echo "Building for Linux..."
 GOOS=linux GOARCH=amd64 go build -o out/apex-load-generator .
+
+echo "Building Docker image..."
 nerdctl build --platform linux/amd64 -t apex-load-generator .
+
+echo "Tagging Docker image..."
 nerdctl tag docker.io/library/apex-load-generator:latest krogertechnology-docker-prod.jfrog.io/apex-public/apex-load-generator:latest
+
+echo "Pushing Docker image..."
 nerdctl push krogertechnology-docker-prod.jfrog.io/apex-public/apex-load-generator:latest
+
+echo "🚀 Build and push completed successfully!"
