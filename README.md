@@ -129,7 +129,7 @@ To prevent resource exhaustion, all endpoints enforce the following limits:
 |-----------|----------|-------|-------------|
 | `p` | Primes | 0-10,000 | Number of prime numbers |
 | `f` | Fibonacci | 0-45 | Fibonacci sequence position |
-| `h` | Hex | 0-1,000 KB | Hex string size |
+| `h` | Hex | 0-10,000 KB | Hex string size |
 | `m` | Memory | 0-1,000,000 KB | Memory allocation size |
 
 ## Request Metrics

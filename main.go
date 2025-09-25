@@ -299,8 +299,8 @@ func getHexString(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
 		return
 	}
-	if num < 0 || num > 1000 {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-1000)"})
+	if num < 0 || num > 10000 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-10000)"})
 		return
 	}
 	result, err := createHexString(num)
@@ -334,8 +334,8 @@ func getFibonacciHex(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
 		return
 	}
-	if hNum < 0 || hNum > 1000 {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-1000)"})
+	if hNum < 0 || hNum > 10000 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-10000)"})
 		return
 	}
 	fResult := fibonacci(fNum)
@@ -371,8 +371,8 @@ func getPrimesHex(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid number"})
 		return
 	}
-	if hNum < 0 || hNum > 1000 {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-1000)"})
+	if hNum < 0 || hNum > 10000 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-10000)"})
 		return
 	}
 	pResult := generatePrimes(pNum)
@@ -414,8 +414,8 @@ func fibonacciHexMemory(c *gin.Context) {
 		return
 	}
 
-	if hNum < 0 || hNum > 1000 {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-1000)"})
+	if hNum < 0 || hNum > 10000 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-10000)"})
 		return
 	}
 
@@ -478,8 +478,8 @@ func primesHexMemory(c *gin.Context) {
 		return
 	}
 
-	if hNum < 0 || hNum > 1000 {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-1000)"})
+	if hNum < 0 || hNum > 10000 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "h: number out of range (0-10000)"})
 		return
 	}
 
@@ -566,7 +566,7 @@ func getIndex(c *gin.Context) {
             <div class="example">
                 Example: <a href="/hex/10">/hex/10</a> - Generate 10KB of hex data
             </div>
-            <div class="limits">Limits: h = 0-1,000 KB | Returns full hex data for bandwidth testing</div>
+            <div class="limits">Limits: h = 0-10,000 KB | Returns full hex data for bandwidth testing</div>
         </div>
 
         <div class="endpoint deprecated">
@@ -584,7 +584,7 @@ func getIndex(c *gin.Context) {
             <div class="example">
                 Example: <a href="/primes/hex/500/50">/primes/hex/500/50</a> - 500 primes + 50KB hex
             </div>
-            <div class="limits">Limits: p = 0-10,000, h = 0-1,000 KB</div>
+            <div class="limits">Limits: p = 0-10,000, h = 0-10,000 KB</div>
         </div>
 
         <div class="endpoint">
@@ -592,7 +592,7 @@ func getIndex(c *gin.Context) {
             <div class="example">
                 Example: <a href="/primes/hex/memory/1000/100/2048">/primes/hex/memory/1000/100/2048</a> - Complete load test
             </div>
-            <div class="limits">Limits: p = 0-10,000, h = 0-1,000 KB, m = 0-1,000,000 KB</div>
+            <div class="limits">Limits: p = 0-10,000, h = 0-10,000 KB, m = 0-1,000,000 KB</div>
         </div>
 
         <div class="endpoint deprecated">
@@ -600,7 +600,7 @@ func getIndex(c *gin.Context) {
             <div class="example">
                 Example: <a href="/fibonacci/hex/25/50">/fibonacci/hex/25/50</a> - Fibonacci + 50KB hex
             </div>
-            <div class="limits">Limits: f = 0-45, h = 0-1,000 KB | ⚠️ Use /primes/hex instead</div>
+            <div class="limits">Limits: f = 0-45, h = 0-10,000 KB | ⚠️ Use /primes/hex instead</div>
         </div>
 
         <div class="endpoint deprecated">
@@ -608,7 +608,7 @@ func getIndex(c *gin.Context) {
             <div class="example">
                 Example: <a href="/fibonacci/hex/memory/20/50/1024">/fibonacci/hex/memory/20/50/1024</a> - All operations
             </div>
-            <div class="limits">Limits: f = 0-45, h = 0-1,000 KB, m = 0-1,000,000 KB | ⚠️ Use /primes/hex/memory instead</div>
+            <div class="limits">Limits: f = 0-45, h = 0-10,000 KB, m = 0-1,000,000 KB | ⚠️ Use /primes/hex/memory instead</div>
         </div>
 
         <h2>📊 Response Format</h2>

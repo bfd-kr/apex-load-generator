@@ -57,13 +57,13 @@ All endpoints now have comprehensive bounds checking to prevent resource exhaust
 
 - **`/fibonacci/:f`**: f: 0-45 (prevents exponential explosion)
 - **`/primes/:p`**: p: 0-10,000 (prevents excessive CPU usage)
-- **`/hex/:h`**: h: 0-1,000 KB (prevents large memory allocations)
+- **`/hex/:h`**: h: 0-10,000 KB (prevents excessive memory allocations)
 - **`/memory/:m`**: m: 0-1,000,000 KB (prevents system memory exhaustion)
 - **Combined endpoints**: Apply limits for all respective parameters
-  - `/fibonacci/hex/:f/:h` - f: 0-45, h: 0-1,000 KB
-  - `/primes/hex/:p/:h` - p: 0-10,000, h: 0-1,000 KB
-  - `/fibonacci/hex/memory/:f/:h/:m` - f: 0-45, h: 0-1,000 KB, m: 0-1,000,000 KB
-  - `/primes/hex/memory/:p/:h/:m` - p: 0-10,000, h: 0-1,000 KB, m: 0-1,000,000 KB
+  - `/fibonacci/hex/:f/:h` - f: 0-45, h: 0-10,000 KB
+  - `/primes/hex/:p/:h` - p: 0-10,000, h: 0-10,000 KB
+  - `/fibonacci/hex/memory/:f/:h/:m` - f: 0-45, h: 0-10,000 KB, m: 0-1,000,000 KB
+  - `/primes/hex/memory/:p/:h/:m` - p: 0-10,000, h: 0-10,000 KB, m: 0-1,000,000 KB
 
 ## Error Handling
 
