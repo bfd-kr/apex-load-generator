@@ -157,3 +157,31 @@ All endpoints now return JSON with two top-level fields:
 ## Dependencies
 
 Primary dependency is `github.com/gin-gonic/gin` for the web framework. Uses standard library packages for encoding, math, and HTTP.
+
+## Development Workflow Requirements
+
+### Automatic Commits
+**CRITICAL**: After making ANY changes to files (code, documentation, etc.), you MUST immediately commit them without being reminded. This is a strict requirement.
+
+**Commit Process**:
+1. After completing any change, immediately run `git add` for modified files
+2. Create a conventional commit with the format: `type: description`
+3. Use appropriate types: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `ci:`, etc.
+4. Include detailed body explaining the changes
+5. Always include the Claude Code attribution footer
+
+**Example**:
+```bash
+git add <files>
+git commit -m "feat: add new endpoint functionality
+
+- Add new feature X
+- Update documentation
+- Include validation
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+**Important**: Never leave uncommitted changes. The user should never have to remind you to commit.
