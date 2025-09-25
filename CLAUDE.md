@@ -28,9 +28,9 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
   - `createHexString()`: Random hex string generation for CPU/memory load (optimized for low CPU usage)
     - **Purpose**: Generate hex strings of specified size or random size within a range for load testing with minimal CPU overhead
     - **Behavior**: Directly generates hex characters (0-9, a-f) using `math/rand` instead of byte-to-hex conversion
-    - **Input**: Accepts single values (e.g., "100") or ranges (e.g., "100-500") for variable size testing
+    - **Input**: Accepts single values (e.g., "100") or ranges (e.g., "100..500") for variable size testing
     - **Returns**: HexResult struct with actual size, optional requested range, length, hex string, and timing information (both microseconds and milliseconds)
-    - **Range Feature**: When range is provided (e.g., 100-500), randomly selects size within range (inclusive) for each request
+    - **Range Feature**: When range is provided (e.g., 100..500), randomly selects size within range (inclusive) for each request
     - **Data Transfer Testing**: Returns full hex string content for network/bandwidth testing (hex data compresses poorly)
     - **Optimization**: Avoids expensive `hex.EncodeToString()` and crypto-grade random generation for better performance
     - **Important**: Uses `math/rand.Intn(16)` for efficiency - do not revert to `crypto/rand` or `hex.EncodeToString()`
@@ -59,7 +59,7 @@ All endpoints now have comprehensive bounds checking to prevent resource exhaust
 
 - **`/fibonacci/:f`**: f: 0-45 (prevents exponential explosion)
 - **`/primes/:p`**: p: 0-10,000 (prevents excessive CPU usage)
-- **`/hex/:h`**: h: 0-10,000 KB or range (e.g., 100-500) (prevents excessive memory allocations)
+- **`/hex/:h`**: h: 0-10,000 KB or range (e.g., 100..500) (prevents excessive memory allocations)
 - **`/memory/:m`**: m: 0-1,000,000 KB (prevents system memory exhaustion)
 - **Combined endpoints**: Apply limits for all respective parameters
   - `/fibonacci/hex/:f/:h` - f: 0-45, h: 0-10,000 KB

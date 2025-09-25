@@ -92,7 +92,7 @@ Generate a hex string of `h` kilobytes or a random size within a range (returns 
 curl http://localhost:8080/hex/10
 
 # Random size within range
-curl http://localhost:8080/hex/100-500
+curl http://localhost:8080/hex/100..500
 ```
 
 #### Fibonacci Calculation (Deprecated)
@@ -133,7 +133,7 @@ To prevent resource exhaustion, all endpoints enforce the following limits:
 |-----------|----------|-------|-------------|
 | `p` | Primes | 0-10,000 | Number of prime numbers |
 | `f` | Fibonacci | 0-45 | Fibonacci sequence position |
-| `h` | Hex | 0-10,000 KB or range | Hex string size or range (e.g., 100-500) |
+| `h` | Hex | 0-10,000 KB or range | Hex string size or range (e.g., 100..500) |
 | `m` | Memory | 0-1,000,000 KB | Memory allocation size |
 
 ## Request Metrics
@@ -180,7 +180,7 @@ curl http://localhost:8080/hex/1000
 
 ### Variable Size Test
 ```bash
-curl http://localhost:8080/hex/500-2000
+curl http://localhost:8080/hex/500..2000
 ```
 
 ## Error Handling

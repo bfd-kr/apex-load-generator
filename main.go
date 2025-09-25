@@ -299,14 +299,14 @@ func createHexString(n int, originalParam string, wasRange bool) (HexResult, err
 	return hexResult, nil
 }
 
-// parseHexSize parses a hex size parameter that can be either a single value or a range (e.g., "100" or "100-500")
+// parseHexSize parses a hex size parameter that can be either a single value or a range (e.g., "100" or "100..500")
 // Returns the actual size to use and whether it was a range
 func parseHexSize(param string) (int, bool, error) {
-	// Check if it's a range (contains dash)
-	if strings.Contains(param, "-") {
-		parts := strings.Split(param, "-")
+	// Check if it's a range (contains double dots)
+	if strings.Contains(param, "..") {
+		parts := strings.Split(param, "..")
 		if len(parts) != 2 {
-			return 0, false, fmt.Errorf("invalid range format, use min-max")
+			return 0, false, fmt.Errorf("invalid range format, use min..max")
 		}
 
 		min, err := strconv.Atoi(strings.TrimSpace(parts[0]))
@@ -622,9 +622,9 @@ func getIndex(c *gin.Context) {
             <span class="method">GET</span> <strong>/hex/{h}</strong> - Generate Hex String
             <div class="example">
                 Example: <a href="/hex/10">/hex/10</a> - Generate 10KB of hex data<br>
-                Range: <a href="/hex/100-500">/hex/100-500</a> - Generate random size between 100-500KB
+                Range: <a href="/hex/100..500">/hex/100..500</a> - Generate random size between 100-500KB
             </div>
-            <div class="limits">Limits: h = 0-10,000 KB or range (e.g., 100-500) | Returns full hex data for bandwidth testing</div>
+            <div class="limits">Limits: h = 0-10,000 KB or range (e.g., 100..500) | Returns full hex data for bandwidth testing</div>
         </div>
 
         <div class="endpoint deprecated">
@@ -684,7 +684,7 @@ func getIndex(c *gin.Context) {
             Heavy CPU: <a href="/primes/5000">/primes/5000</a><br>
             Memory Test: <a href="/memory/100000">/memory/100000</a><br>
             Bandwidth Test: <a href="/hex/1000">/hex/1000</a><br>
-            Variable Size Test: <a href="/hex/500-2000">/hex/500-2000</a><br>
+            Variable Size Test: <a href="/hex/500..2000">/hex/500..2000</a><br>
             Combined Load: <a href="/primes/hex/memory/2000/500/50000">/primes/hex/memory/2000/500/50000</a>
         </div>
 
