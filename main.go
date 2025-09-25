@@ -16,6 +16,7 @@ type RequestMetrics struct {
 	StartTime        time.Time `json:"-"`
 	EndTime          time.Time `json:"-"`
 	DurationUs       int64     `json:"duration_us"`
+	DurationMs       float64   `json:"duration_ms"`
 	CPUUsagePercent  float64   `json:"cpu_usage_percent"`
 	MemoryUsedBytes  int64     `json:"memory_used_bytes"`
 	GoroutinesBefore int       `json:"goroutines_before"`
@@ -40,7 +41,9 @@ func (rm *RequestMetrics) finish() {
 	runtime.ReadMemStats(&memStats)
 
 	rm.EndTime = time.Now()
-	rm.DurationUs = rm.EndTime.Sub(rm.StartTime).Nanoseconds() / 1000
+	duration := rm.EndTime.Sub(rm.StartTime)
+	rm.DurationUs = duration.Nanoseconds() / 1000
+	rm.DurationMs = float64(duration.Nanoseconds()) / 1000000.0
 	rm.GoroutinesAfter = runtime.NumGoroutine()
 
 	// Calculate memory used during request
@@ -597,7 +600,7 @@ func getIndex(c *gin.Context) {
             All endpoints return JSON with:
             <ul>
                 <li><strong>data</strong>: Operation results (timing, counts, generated content)</li>
-                <li><strong>request_metrics</strong>: Performance data (duration_us, cpu_usage_percent, memory_used_bytes, goroutine counts)</li>
+                <li><strong>request_metrics</strong>: Performance data (duration_us, duration_ms, cpu_usage_percent, memory_used_bytes, goroutine counts)</li>
             </ul>
         </div>
 
@@ -617,7 +620,7 @@ func getIndex(c *gin.Context) {
                 <li>Fibonacci: Exponential complexity, deprecated for unpredictable performance</li>
                 <li>Hex generation: Optimized for low CPU usage, good for bandwidth testing</li>
                 <li>Memory allocation: Uses page-boundary touching for realistic patterns</li>
-                <li>All timing: Microsecond precision for accurate performance analysis</li>
+                <li>All timing: Microsecond and millisecond precision for accurate performance analysis</li>
             </ul>
         </div>
     </div>

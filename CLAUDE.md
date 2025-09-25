@@ -112,6 +112,7 @@ go run main.go
 Each request now includes a `request_metrics` field in the JSON response containing:
 
 - **`duration_us`**: Request duration in microseconds (from start to completion)
+- **`duration_ms`**: Request duration in milliseconds (from start to completion)
 - **`cpu_usage_percent`**: Approximated CPU usage percentage during request processing
 - **`memory_used_bytes`**: Memory delta in bytes during request execution (memory consumed - memory freed)
 - **`goroutines_before`**: Number of goroutines before request processing
@@ -127,6 +128,7 @@ All endpoints now return JSON with two top-level fields:
   },
   "request_metrics": {
     "duration_us": 1234,
+    "duration_ms": 1.234,
     "cpu_usage_percent": 25.5,
     "memory_used_bytes": 1048576,
     "goroutines_before": 8,
@@ -137,7 +139,7 @@ All endpoints now return JSON with two top-level fields:
 
 ### Implementation Details
 
-- **Timing**: Uses high-resolution `time.Now()` with microsecond precision
+- **Timing**: Uses high-resolution `time.Now()` with both microsecond and millisecond precision
 - **Memory Tracking**: Captures `runtime.MemStats.Alloc` before and after request processing
 - **CPU Estimation**: Simple approximation based on request duration (not perfect but indicative)
 - **Goroutine Monitoring**: Tracks goroutine count changes during request processing
