@@ -5,6 +5,7 @@ RUN apk add --update --no-cache bind-tools curl vim traceroute mtr tcptraceroute
 WORKDIR /app
 
 COPY out/apex-load-generator /app/apex-load-generator
+COPY swagger.yaml /app/swagger.yaml
 
 EXPOSE 8080
 

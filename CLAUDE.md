@@ -43,6 +43,13 @@ This is a Go-based load generator service that provides HTTP endpoints for creat
 
 ## API Endpoints
 
+### Documentation Endpoints
+- `GET /` - HTML API documentation homepage with examples and usage
+- `GET /swagger` - Interactive Swagger UI for testing API endpoints directly
+- `GET /docs` - Alternative URL for Swagger UI (same as /swagger)
+- `GET /swagger.yaml` - Raw OpenAPI 3.0 specification file download
+
+### Load Testing Endpoints
 - `GET /fibonacci/:f` - **DEPRECATED** - Calculate nth Fibonacci number or random position within range (returns timing data in both microseconds and milliseconds)
 - `GET /primes/:p` - Generate first p prime numbers or random count within range (returns timing data in both microseconds and milliseconds)
 - `GET /hex/:h` - Generate hex string of h kilobytes or random size within range (returns full hex data with timing in both microseconds and milliseconds)
@@ -96,14 +103,33 @@ go run main.go
 ./local-build-docker-push
 ```
 
+**Note**: The Docker build includes the `swagger.yaml` file to ensure API documentation is available in containerized deployments.
+
 ## Files Structure
 
 - `main.go` - Main application with all handlers and logic
+- `swagger.yaml` - OpenAPI 3.0 specification for the API
 - `go.mod/go.sum` - Go module dependencies
 - `Dockerfile` - Alpine-based container definition
 - `local-build-docker-push` - Build script for Docker deployment
 - `apex-load-generator.postman_collection.json` - Postman collection for API testing
 - `out/` - Build output directory
+
+## API Documentation Features
+
+### Interactive Documentation
+The service now provides comprehensive API documentation through multiple interfaces:
+
+1. **HTML Documentation** (`GET /`): User-friendly homepage with examples, usage tips, and direct links to test endpoints
+2. **Swagger UI** (`GET /swagger` or `GET /docs`): Interactive API explorer allowing direct testing of endpoints with parameter validation
+3. **OpenAPI Specification** (`GET /swagger.yaml`): Machine-readable API specification following OpenAPI 3.0 standard
+
+### Swagger UI Features
+- **Interactive Testing**: Try all API endpoints directly from the browser
+- **Parameter Validation**: Real-time validation of input parameters and ranges
+- **Response Examples**: Live examples showing actual API responses with timing metrics
+- **Schema Documentation**: Detailed documentation of all request/response schemas
+- **Error Examples**: Clear examples of error responses and validation failures
 
 ## Request-Level Metrics
 
