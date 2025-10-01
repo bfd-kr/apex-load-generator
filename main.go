@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"runtime"
@@ -571,6 +572,15 @@ func getIndex(c *gin.Context) {
         <h1>🚀 Apex Load Generator API</h1>
         <p>A Go-based HTTP service for creating computational load through CPU calculations, memory allocation, and hex string generation. All endpoints return JSON with both operation results and request-level performance metrics.</p>
 
+        <div class="note">
+            <strong>📖 API Documentation:</strong>
+            <ul>
+                <li><a href="/swagger">Interactive Swagger UI</a> - Try the API directly in your browser</li>
+                <li><a href="/docs">Alternative Swagger UI</a> - Same as above, alternative URL</li>
+                <li><a href="/swagger.yaml">Raw OpenAPI Specification</a> - Download the YAML spec</li>
+            </ul>
+        </div>
+
         <h2>🔢 Single Operations</h2>
 
         <div class="endpoint">
@@ -686,10 +696,75 @@ func getIndex(c *gin.Context) {
 	c.String(200, html)
 }
 
+// getSwaggerYAML serves the raw Swagger YAML specification
+func getSwaggerYAML(c *gin.Context) {
+	data, err := ioutil.ReadFile("swagger.yaml")
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "swagger.yaml not found"})
+		return
+	}
+	c.Header("Content-Type", "application/x-yaml")
+	c.String(200, string(data))
+}
+
+// getSwaggerUI serves the Swagger UI interface
+func getSwaggerUI(c *gin.Context) {
+	html := `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Apex Load Generator API - Swagger UI</title>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui.css" />
+    <style>
+        html {
+            box-sizing: border-box;
+            overflow: -moz-scrollbars-vertical;
+            overflow-y: scroll;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+        body {
+            margin:0;
+            background: #fafafa;
+        }
+    </style>
+</head>
+<body>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@4.15.5/swagger-ui-standalone-preset.js"></script>
+    <script>
+        window.onload = function() {
+            const ui = SwaggerUIBundle({
+                url: '/swagger.yaml',
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "StandaloneLayout",
+                validatorUrl: null
+            });
+        };
+    </script>
+</body>
+</html>`
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.String(200, html)
+}
+
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	router := gin.Default()
 	router.GET("/", getIndex)
+	router.GET("/swagger.yaml", getSwaggerYAML)
+	router.GET("/swagger", getSwaggerUI)
+	router.GET("/docs", getSwaggerUI)
 	router.GET("/fibonacci/:f", getFibonacci)
 	router.GET("/primes/:p", getPrimes)
 	router.GET("/hex/:h", getHexString)

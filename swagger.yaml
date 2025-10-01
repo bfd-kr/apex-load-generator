@@ -1,0 +1,648 @@
+openapi: 3.0.3
+info:
+  title: Apex Load Generator API
+  description: |
+    A Go-based HTTP service for creating computational load through CPU calculations, memory allocation, and hex string generation.
+
+    All endpoints return JSON responses with both operation results and request-level performance metrics including timing data,
+    memory usage, and goroutine counts for comprehensive load testing analysis.
+
+    **Key Features:**
+    - CPU load testing through prime number generation (recommended) or Fibonacci calculations (deprecated)
+    - Memory pressure testing through controlled allocation
+    - Bandwidth testing through hex string generation
+    - Request-level performance metrics for all operations
+    - Support for single values or ranges for variable load testing
+
+    **Input Format:**
+    - Single values: `/primes/100` - Generate exactly 100 primes
+    - Ranges: `/primes/100..500` - Generate random count between 100-500 primes
+  version: 1.0.0
+  contact:
+    name: Apex Load Generator
+    url: https://github.com/your-repo/apex-load-generator
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080
+    description: Development server
+
+paths:
+  /:
+    get:
+      tags:
+        - Documentation
+      summary: API Documentation Homepage
+      description: Returns an HTML page with comprehensive API documentation and examples
+      responses:
+        '200':
+          description: HTML documentation page
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /primes/{p}:
+    get:
+      tags:
+        - CPU Load Testing
+      summary: Generate Prime Numbers (Recommended)
+      description: |
+        Generate the first n prime numbers for CPU load testing. Uses linear complexity algorithm
+        for predictable performance scaling. Returns timing data in both microseconds and milliseconds.
+
+        **Input formats:**
+        - Single value: `100` - Generate exactly 100 primes
+        - Range: `100..500` - Generate random count between 100-500 primes
+      parameters:
+        - name: p
+          in: path
+          required: true
+          description: Number of primes to generate (0-10,000) or range (e.g., 100..500)
+          schema:
+            type: string
+            pattern: '^(\d+|(\d+)\.\.(\d+))$'
+            example: "100"
+      responses:
+        '200':
+          description: Prime generation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrimeResponse'
+        '400':
+          description: Invalid parameter or out of range
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /memory/{m}:
+    get:
+      tags:
+        - Memory Testing
+      summary: Allocate Memory
+      description: |
+        Temporarily allocate memory to create memory pressure, then allow natural garbage collection.
+        Touches memory at 4KB page boundaries to ensure real allocation.
+
+        **Input formats:**
+        - Single value: `1024` - Allocate exactly 1024 KB (1 MB)
+        - Range: `500..2000` - Allocate random size between 500KB-2MB
+      parameters:
+        - name: m
+          in: path
+          required: true
+          description: Memory to allocate in kilobytes (0-1,000,000) or range (e.g., 500..2000)
+          schema:
+            type: string
+            pattern: '^(\d+|(\d+)\.\.(\d+))$'
+            example: "1024"
+      responses:
+        '200':
+          description: Memory allocation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemoryResponse'
+        '400':
+          description: Invalid parameter or out of range
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Memory allocation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /hex/{h}:
+    get:
+      tags:
+        - Bandwidth Testing
+      summary: Generate Hex String
+      description: |
+        Generate random hex string of specified size for bandwidth testing. Optimized for low CPU usage.
+        Returns full hex data content which compresses poorly for realistic network testing.
+
+        **Input formats:**
+        - Single value: `100` - Generate exactly 100 KB of hex data
+        - Range: `100..500` - Generate random size between 100-500 KB
+      parameters:
+        - name: h
+          in: path
+          required: true
+          description: Hex string size in kilobytes (0-10,000) or range (e.g., 100..500)
+          schema:
+            type: string
+            pattern: '^(\d+|(\d+)\.\.(\d+))$'
+            example: "100"
+      responses:
+        '200':
+          description: Hex string generation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HexResponse'
+        '400':
+          description: Invalid parameter or out of range
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /fibonacci/{f}:
+    get:
+      tags:
+        - CPU Load Testing (Deprecated)
+      summary: Calculate Fibonacci Number (Deprecated)
+      description: |
+        Calculate nth Fibonacci number using recursive algorithm.
+
+        **⚠️ DEPRECATED**: Use `/primes/{p}` instead for predictable CPU load testing.
+        Fibonacci has exponential complexity making performance unpredictable.
+
+        **Input formats:**
+        - Single value: `30` - Calculate exactly 30th Fibonacci number
+        - Range: `25..35` - Calculate random position between 25-35
+      deprecated: true
+      parameters:
+        - name: f
+          in: path
+          required: true
+          description: Fibonacci position (0-45) or range (e.g., 25..35)
+          schema:
+            type: string
+            pattern: '^(\d+|(\d+)\.\.(\d+))$'
+            example: "30"
+      responses:
+        '200':
+          description: Fibonacci calculation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FibonacciResponse'
+        '400':
+          description: Invalid parameter or out of range
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /primes/hex/{p}/{h}:
+    get:
+      tags:
+        - Combined Operations
+      summary: Prime Generation + Hex String
+      description: |
+        Combined operation: Generate prime numbers and hex string simultaneously.
+        Useful for testing combined CPU and bandwidth load.
+
+        **Input formats for both parameters:**
+        - Single values: `/primes/hex/500/50` - 500 primes + 50KB hex
+        - Ranges: `/primes/hex/100..1000/25..100` - Variable primes + variable hex size
+      parameters:
+        - name: p
+          in: path
+          required: true
+          description: Number of primes (0-10,000) or range
+          schema:
+            type: string
+            pattern: '^(\d+|(\d+)\.\.(\d+))$'
+            example: "500"
+        - name: h
+          in: path
+          required: true
+          description: Hex size in KB (0-10,000) or range
+          schema:
+            type: string
+            pattern: '^(\d+|(\d+)\.\.(\d+))$'
+            example: "50"
+      responses:
+        '200':
+          description: Combined operation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrimeHexResponse'
+        '400':
+          description: Invalid parameter or out of range
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /primes/hex/memory/{p}/{h}/{m}:
+    get:
+      tags:
+        - Combined Operations
+      summary: Full Load Test (Prime + Hex + Memory)
+      description: |
+        Complete load testing operation combining CPU, bandwidth, and memory testing.
+        Performs prime generation, hex string creation, and memory allocation.
+
+        **Input formats for all parameters:**
+        - Single values: `/primes/hex/memory/1000/100/2048` - Complete load test
+        - Ranges: `/primes/hex/memory/500..2000/50..200/1000..5000` - Variable everything
+      parameters:
+        - name: p
+          in: path
+          required: true
+          description: Number of primes (0-10,000) or range
+          schema:
+            type: string
+            pattern: '^(\d+|(\d+)\.\.(\d+))$'
+            example: "1000"
+        - name: h
+          in: path
+          required: true
+          description: Hex size in KB (0-10,000) or range
+          schema:
+            type: string
+            pattern: '^(\d+|(\d+)\.\.(\d+))$'
+            example: "100"
+        - name: m
+          in: path
+          required: true
+          description: Memory in KB (0-1,000,000) or range
+          schema:
+            type: string
+            pattern: '^(\d+|(\d+)\.\.(\d+))$'
+            example: "2048"
+      responses:
+        '200':
+          description: Full load test successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FullLoadResponse'
+        '400':
+          description: Invalid parameter or out of range
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Memory allocation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /fibonacci/hex/{f}/{h}:
+    get:
+      tags:
+        - Combined Operations (Deprecated)
+      summary: Fibonacci + Hex (Deprecated)
+      description: |
+        **⚠️ DEPRECATED**: Use `/primes/hex/{p}/{h}` instead.
+        Combined Fibonacci calculation and hex string generation.
+      deprecated: true
+      parameters:
+        - name: f
+          in: path
+          required: true
+          description: Fibonacci position (0-45) or range
+          schema:
+            type: string
+            pattern: '^(\d+|(\d+)\.\.(\d+))$'
+            example: "25"
+        - name: h
+          in: path
+          required: true
+          description: Hex size in KB (0-10,000) or range
+          schema:
+            type: string
+            pattern: '^(\d+|(\d+)\.\.(\d+))$'
+            example: "50"
+      responses:
+        '200':
+          description: Combined operation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FibonacciHexResponse'
+        '400':
+          description: Invalid parameter or out of range
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /fibonacci/hex/memory/{f}/{h}/{m}:
+    get:
+      tags:
+        - Combined Operations (Deprecated)
+      summary: Fibonacci + Hex + Memory (Deprecated)
+      description: |
+        **⚠️ DEPRECATED**: Use `/primes/hex/memory/{p}/{h}/{m}` instead.
+        Combined Fibonacci, hex, and memory operations.
+      deprecated: true
+      parameters:
+        - name: f
+          in: path
+          required: true
+          description: Fibonacci position (0-45) or range
+          schema:
+            type: string
+            pattern: '^(\d+|(\d+)\.\.(\d+))$'
+            example: "20"
+        - name: h
+          in: path
+          required: true
+          description: Hex size in KB (0-10,000) or range
+          schema:
+            type: string
+            pattern: '^(\d+|(\d+)\.\.(\d+))$'
+            example: "50"
+        - name: m
+          in: path
+          required: true
+          description: Memory in KB (0-1,000,000) or range
+          schema:
+            type: string
+            pattern: '^(\d+|(\d+)\.\.(\d+))$'
+            example: "1024"
+      responses:
+        '200':
+          description: Combined operation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FibonacciFullLoadResponse'
+        '400':
+          description: Invalid parameter or out of range
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Memory allocation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    RequestMetrics:
+      type: object
+      description: Request-level performance metrics collected for all operations
+      properties:
+        duration_us:
+          type: integer
+          format: int64
+          description: Request duration in microseconds
+          example: 1234
+        duration_ms:
+          type: number
+          format: float
+          description: Request duration in milliseconds
+          example: 1.234
+        cpu_usage_percent:
+          type: number
+          format: float
+          description: Approximated CPU usage percentage (-1 indicates unavailable)
+          example: -1.0
+        memory_used_bytes:
+          type: integer
+          format: int64
+          description: Memory delta in bytes during request execution
+          example: 1048576
+        goroutines_before:
+          type: integer
+          description: Number of goroutines before request processing
+          example: 8
+        goroutines_after:
+          type: integer
+          description: Number of goroutines after request processing
+          example: 8
+
+    PrimeResult:
+      type: object
+      description: Result of prime number generation
+      properties:
+        count:
+          type: integer
+          description: Number of primes generated
+          example: 100
+        requested_range:
+          type: string
+          description: Original range parameter if range was used
+          example: "100..500"
+        last_prime:
+          type: integer
+          description: The last (largest) prime number found
+          example: 541
+        duration_us:
+          type: integer
+          format: int64
+          description: Operation duration in microseconds
+          example: 856
+        duration_ms:
+          type: number
+          format: float
+          description: Operation duration in milliseconds
+          example: 0.856
+
+    MemoryResult:
+      type: object
+      description: Result of memory allocation
+      properties:
+        size_kb:
+          type: integer
+          description: Actual memory allocated in kilobytes
+          example: 1024
+        requested_range:
+          type: string
+          description: Original range parameter if range was used
+          example: "500..2000"
+        duration_us:
+          type: integer
+          format: int64
+          description: Operation duration in microseconds
+          example: 245
+        duration_ms:
+          type: number
+          format: float
+          description: Operation duration in milliseconds
+          example: 0.245
+
+    HexResult:
+      type: object
+      description: Result of hex string generation
+      properties:
+        size_kb:
+          type: integer
+          description: Size of generated hex string in kilobytes
+          example: 100
+        requested_range:
+          type: string
+          description: Original range parameter if range was used
+          example: "100..500"
+        length:
+          type: integer
+          description: Length of the hex string in characters
+          example: 102400
+        hex_string:
+          type: string
+          description: The generated hex string content
+          example: "a1b2c3d4e5f6..."
+        duration_us:
+          type: integer
+          format: int64
+          description: Operation duration in microseconds
+          example: 123
+        duration_ms:
+          type: number
+          format: float
+          description: Operation duration in milliseconds
+          example: 0.123
+
+    FibonacciResult:
+      type: object
+      description: Result of Fibonacci calculation (deprecated)
+      properties:
+        n:
+          type: integer
+          description: Input position in Fibonacci sequence
+          example: 30
+        requested_range:
+          type: string
+          description: Original range parameter if range was used
+          example: "25..35"
+        result:
+          type: integer
+          description: Calculated Fibonacci number
+          example: 832040
+        duration_us:
+          type: integer
+          format: int64
+          description: Operation duration in microseconds
+          example: 15234
+        duration_ms:
+          type: number
+          format: float
+          description: Operation duration in milliseconds
+          example: 15.234
+
+    PrimeResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/PrimeResult'
+        request_metrics:
+          $ref: '#/components/schemas/RequestMetrics'
+
+    MemoryResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/MemoryResult'
+        request_metrics:
+          $ref: '#/components/schemas/RequestMetrics'
+
+    HexResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/HexResult'
+        request_metrics:
+          $ref: '#/components/schemas/RequestMetrics'
+
+    FibonacciResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/FibonacciResult'
+        request_metrics:
+          $ref: '#/components/schemas/RequestMetrics'
+
+    PrimeHexResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            prime_result:
+              $ref: '#/components/schemas/PrimeResult'
+            hex_result:
+              $ref: '#/components/schemas/HexResult'
+        request_metrics:
+          $ref: '#/components/schemas/RequestMetrics'
+
+    FullLoadResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            prime_result:
+              $ref: '#/components/schemas/PrimeResult'
+            hex_result:
+              $ref: '#/components/schemas/HexResult'
+            memory_result:
+              $ref: '#/components/schemas/MemoryResult'
+        request_metrics:
+          $ref: '#/components/schemas/RequestMetrics'
+
+    FibonacciHexResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            fibonacci_result:
+              $ref: '#/components/schemas/FibonacciResult'
+            hex_result:
+              $ref: '#/components/schemas/HexResult'
+        request_metrics:
+          $ref: '#/components/schemas/RequestMetrics'
+
+    FibonacciFullLoadResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            fibonacci_result:
+              $ref: '#/components/schemas/FibonacciResult'
+            hex_result:
+              $ref: '#/components/schemas/HexResult'
+            memory_result:
+              $ref: '#/components/schemas/MemoryResult'
+        request_metrics:
+          $ref: '#/components/schemas/RequestMetrics'
+
+    ErrorResponse:
+      type: object
+      description: Error response format
+      properties:
+        message:
+          type: string
+          description: Error message describing what went wrong
+          example: "p: number out of range (0-10000)"
+
+tags:
+  - name: Documentation
+    description: API documentation and help
+  - name: CPU Load Testing
+    description: Operations for CPU load testing through mathematical calculations
+  - name: Memory Testing
+    description: Operations for memory pressure testing
+  - name: Bandwidth Testing
+    description: Operations for bandwidth and data transfer testing
+  - name: Combined Operations
+    description: Multi-operation endpoints for comprehensive load testing
+  - name: CPU Load Testing (Deprecated)
+    description: Deprecated CPU load testing operations
+  - name: Combined Operations (Deprecated)
+    description: Deprecated combined operations
+
+externalDocs:
+  description: GitHub Repository
+  url: https://github.com/your-repo/apex-load-generator
